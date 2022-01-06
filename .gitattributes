@@ -10,3 +10,5 @@
 /project.godot      export-ignore
 /icon.png           export-ignore
 /icon.svg           export-ignore
+/tests              export-ignore
+/addons/gut         export-ignore

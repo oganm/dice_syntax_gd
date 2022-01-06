@@ -1,0 +1,36 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=4
+
+_global_script_classes=[ {
+"base": "GDScript",
+"class": "dice_syntax",
+"language": "GDScript",
+"path": "res://addons/dice_syntax/dice_syntax.gd"
+} ]
+_global_script_class_icons={
+"dice_syntax": ""
+}
+
+[application]
+
+config/name="dice_syntax_gd"
+config/icon="res://icon.png"
+
+[editor_plugins]
+
+enabled=PoolStringArray( "res://addons/dice_syntax/plugin.cfg", "res://addons/gut/plugin.cfg", "res://addons/terminal/plugin.cfg" )
+
+[physics]
+
+common/enable_pause_aware_picking=true
+
+[rendering]
+
+environment/default_environment="res://default_env.tres"
