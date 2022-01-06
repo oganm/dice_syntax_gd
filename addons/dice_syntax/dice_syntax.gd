@@ -5,8 +5,8 @@ class_name dice_syntax
 
 
 static func dice_parser(dice_string:String)->Dictionary:
-	var sm = string_manip
-	var al = array_logic
+	var sm = preload('string_manip.gd')
+	var al = preload('array_logic.gd')
 	
 	var rolling_rules: Dictionary = {'error': false, 
 	'msg': [],
@@ -140,7 +140,7 @@ static func dice_parser(dice_string:String)->Dictionary:
 	return rolling_rules
 
 static func range_determine(token:String,dice_side:int, default:int = 1)->Array:
-	var sm = string_manip
+	var sm = preload('string_manip.gd')
 	var out:Array = []
 	var number = sm.str_extract(token, '[0-9]*$')
 	# dice_error(!(sm.str_detect(token,'<|>') and number ==''),'Malformed dice string: Using  "<" or ">" identifiers requires an integer',rolling_rules)
@@ -166,7 +166,7 @@ static func dice_error(condition:bool,message:String,rolling_rules:Dictionary):
 
 
 static func roll_param(rolling_rules:Dictionary,rng:RandomNumberGenerator)->Dictionary:
-	var al = array_logic
+	var al = preload('array_logic.gd')
 	var out:Dictionary = {'error': false,
 	 'msg': '',
 	'dice': [],
@@ -250,7 +250,7 @@ static func roll_param(rolling_rules:Dictionary,rng:RandomNumberGenerator)->Dict
 
 
 static func composite_dice_parser(dice:String)->Dictionary:
-	var sm = string_manip
+	var sm = preload('string_manip.gd')
 	
 	var dice_components = sm.str_split(dice,'\\+|-')
 	var string_signs = sm.str_extract_all(dice,'\\+|-')

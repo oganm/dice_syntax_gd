@@ -1,5 +1,4 @@
 extends GDScript
-class_name string_manip
 
 
 static func str_extract(string:String,pattern:String):

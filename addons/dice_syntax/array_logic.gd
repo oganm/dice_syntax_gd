@@ -1,5 +1,4 @@
 extends GDScript
-class_name array_logic
 # functions meant to deal with numeric arrays
 
 
