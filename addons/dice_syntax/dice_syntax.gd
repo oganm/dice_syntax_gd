@@ -84,11 +84,8 @@ static func dice_parser(dice_string:String)->Dictionary:
 	for i in reroll_rules:
 		reroll.append_array(range_determine(tokens[i], rolling_rules['dice_side']))
 	var dicePossibilities = range(1,rolling_rules['dice_side']+1)
-	if al.all(al.array_in_array(dicePossibilities,reroll)):
-		push_error('Malformed dice string: rerolling all results')
-		rolling_rules['reroll'] = []
-	else:
-		rolling_rules['reroll'] = reroll
+	# dice_error(!al.all(al.array_in_array(dicePossibilities,reroll)),'Malformed dice string: rerolling all results',rolling_rules)
+	rolling_rules['reroll'] = reroll
 	# remove reroll rules
 	reroll_rules.invert()
 	for i in reroll_rules:
@@ -130,8 +127,8 @@ static func dice_parser(dice_string:String)->Dictionary:
 	var possible_dice = range(1,rolling_rules.dice_side+1)
 	possible_dice = al.array_subset(possible_dice,al.which(al.array_not(al.array_in_array(possible_dice, rolling_rules.reroll))))
 	dice_error(possible_dice.size()>0,"Invalid dice: No possible results",rolling_rules)
-	dice_error(not al.all(al.array_in_array(possible_dice,rolling_rules.explode)),"Invalid dice: can't explode every result",rolling_rules)
-	dice_error(not al.all(al.array_in_array(possible_dice,rolling_rules.compound)),"Invalid dice: can't compound every result",rolling_rules)
+	dice_error(not (al.all(al.array_in_array(possible_dice,rolling_rules.explode)) and rolling_rules.explode.size()>0),"Invalid dice: can't explode every result",rolling_rules)
+	dice_error(not (al.all(al.array_in_array(possible_dice,rolling_rules.compound)) and rolling_rules.compound.size()>0),"Invalid dice: can't compound every result",rolling_rules)
 	rolling_rules['possible_dice'] = possible_dice
 	
 	dice_error(not (rolling_rules.explode.size()>0 and rolling_rules.compound.size()>0), "Invalid dice: can't explode and compound with the same dice",rolling_rules)
