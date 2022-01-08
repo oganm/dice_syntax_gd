@@ -45,3 +45,9 @@ print(dice_syntax.roll_comp(parsed_dice,rng))
 - `4d6!`: roll 4d6 explode 6s (for every six, roll again until a non six is rolled, add them to the rolls. The output will have variable number of dice)
 - `4d6!!`: roll 4d6 compound 6s (for every six, roll again until a non six is rolled, combined them into a single roll in the output. The output will have 4 dice)
 - `4d6!>5`: roll 4d6 explode 5s and 6s
+
+## License
+
+This project is released under MIT license
+
+The icon included is created by Delapouite under CC BY 3.0, taken from https://game-icons.net/
