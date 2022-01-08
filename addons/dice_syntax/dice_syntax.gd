@@ -249,7 +249,7 @@ static func roll_param(rolling_rules:Dictionary,rng:RandomNumberGenerator)->Dict
 	return out
 
 
-static func composite_dice_parser(dice:String)->Dictionary:
+static func comp_dice_parser(dice:String)->Dictionary:
 	var sm = preload('string_manip.gd')
 	
 	var dice_components = sm.str_split(dice,'\\+|-')
@@ -272,9 +272,13 @@ static func composite_dice_parser(dice:String)->Dictionary:
 	
 	return {'rules_array': rules_array, 'signs':component_signs}
 
-static func roll(dice:String,rng:RandomNumberGenerator,return_rolls = true):
+static func roll(dice:String,rng:RandomNumberGenerator):
+	var rules = comp_dice_parser(dice)
+	return roll_comp(rules,rng)
+
+static func roll_comp(rules:Dictionary, rng:RandomNumberGenerator):
 	var results:Array
-	var rules = composite_dice_parser(dice)
+	
 	for i in range(rules.rules_array.size()):
 		var result = roll_param(rules.rules_array[i],rng)
 		result.result *= rules.signs[i]
@@ -287,3 +291,4 @@ static func roll(dice:String,rng:RandomNumberGenerator,return_rolls = true):
 	var out = {'result':sum, 'rolls':results}
 	
 	return out
+	
