@@ -273,6 +273,8 @@ static func roll(dice:String,rng:RandomNumberGenerator):
 	var rules = comp_dice_parser(dice)
 	return roll_comp(rules,rng)
 
+
+# incomplete
 static func roll_comp(rules:Dictionary, rng:RandomNumberGenerator):
 	var results:Array
 	
@@ -288,4 +290,74 @@ static func roll_comp(rules:Dictionary, rng:RandomNumberGenerator):
 	var out = {'result':sum, 'rolls':results}
 	
 	return out
+
+
+static func add_to_dict(dict:Dictionary,key,value):
+	if dict.has(key):
+		dict[key] += value
+	else:
+		dict[key] = value
+
+
+static func calc_probs(rules:Dictionary,explode_depth:int = 3):
+	var al = preload('array_logic.gd')
+	var rls = rules.duplicate()
+	var base_prob = 1.0/rules.possible_dice.size()
 	
+	# base probabilities
+	var probs:Dictionary
+	
+	for x in rules.possible_dice:
+		probs[x] = base_prob
+	
+	# reroll once adjustment
+	var reroll_prob = pow(base_prob, 2.0)
+	var prob_to_add = 0
+	for x in rules.reroll_once:
+		probs[x] = 0
+		prob_to_add += reroll_prob
+		
+	for x in probs.keys():
+		probs[x] += prob_to_add
+	
+	# explosion and compound dice have the same probabilities and they can't coexist
+	if rls.explode.size()==0:
+		rls.explode = rls.compound
+	
+	if rls.explode.size()>0:
+		var explode_probs = {}
+		for x in rls.explode:
+			explode_probs[x] = probs[x]
+		var explode_probs_base = explode_probs.duplicate()
+		var explode_probs_intermediate = explode_probs.duplicate()
+		
+		for i in range(explode_depth -1 ):
+			var explode_to_add = {}
+			for j in explode_probs_base.keys():
+				for k in explode_probs_intermediate.keys():
+					var key_to_add = j+k
+					var value_to_add = explode_probs_intermediate[k]*explode_probs_base[j]
+					add_to_dict(explode_to_add,key_to_add,value_to_add)	
+			explode_probs_intermediate = explode_to_add.duplicate()
+			
+			for j in explode_to_add.keys():
+				add_to_dict(explode_probs,j,explode_to_add[j])
+		
+		var exploded_results = probs.duplicate()
+		
+		for i in explode_probs.keys():
+			print(i)
+			add_to_dict(exploded_results,i,-explode_probs[i])
+			
+			var keys = al.add_to_array(probs.keys(),i)
+			var values = al.multiply_array(probs.values(),explode_probs[i])
+			
+			for j in range(keys.size()):
+				add_to_dict(exploded_results,int(keys[j]),values[j])
+			
+		probs = exploded_results
+	
+	
+	
+	print(probs)
+	return probs

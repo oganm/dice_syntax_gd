@@ -10,6 +10,7 @@ static func all(array:Array)->bool:
 			out = false
 	return out
 
+# true if any is true in an array
 static func any(array:Array)->bool:
 	var out = false
 	for x in array:
@@ -17,6 +18,7 @@ static func any(array:Array)->bool:
 			out = true
 	return out
 
+# sum of trues in an array
 static func sum_bool(array:Array)->int:
 	var out:int = 0
 	for x in array:
@@ -24,21 +26,39 @@ static func sum_bool(array:Array)->int:
 			out +=1
 	return out
 
+# sum of numbers in the array
 static func sum(array:Array)->float:
 	var out:float = 0
 	for x in array:
 		out += x
 	return(out)
 
+# get mean of array
 static func mean(array:Array)->float:
 	var out:float = 0
 	return float(sum(array))/array.size()
 
+# multiply array elements by factor
+static func multiply_array(array:Array,mult:float)->Array:
+	var out:Array
+	for x in array:
+		out.append(x*mult)
+	return out
+
+# add a number to array elements
+static func add_to_array(array:Array,add:float)->Array:
+	var out:Array
+	for x in array:
+		out.append(x+add)
+	return out
+
+# check if elements of an array are in another array
 static func array_in_array(array:Array,target:Array)->Array:
 	var out:Array
 	for i in range(array.size()):
 		out.append(target.find(array[i]) != -1)
 	return out
+
 
 static func which_in_array(array:Array,target:Array)->Array:
 	var out:Array
@@ -47,6 +67,7 @@ static func which_in_array(array:Array,target:Array)->Array:
 			out.append(i)
 	return out
 
+# return true indexes in an array
 static func which(array:Array)->Array:
 	var out:Array
 	for i in range(array.size()):
