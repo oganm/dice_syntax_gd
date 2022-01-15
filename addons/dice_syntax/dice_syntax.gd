@@ -274,8 +274,8 @@ static func roll(dice:String,rng:RandomNumberGenerator):
 	return roll_comp(rules,rng)
 
 
-# incomplete
-static func roll_comp(rules:Dictionary, rng:RandomNumberGenerator):
+
+static func roll_comp(rules:Dictionary, rng:RandomNumberGenerator)->Dictionary:
 	var results:Array
 	
 	for i in range(rules.rules_array.size()):
@@ -292,20 +292,20 @@ static func roll_comp(rules:Dictionary, rng:RandomNumberGenerator):
 	return out
 
 
-static func add_to_dict(dict:Dictionary,key,value):
-	if dict.has(key):
-		dict[key] += value
-	else:
-		dict[key] = value
 
 
-static func calc_probs(rules:Dictionary,explode_depth:int = 3):
+static func calc_probs(rules:Dictionary,explode_depth:int = 3)->Dictionary:
 	var al = preload('array_logic.gd')
+	
+	# add can only appear alone
+	if rules.add>0:
+		return {rules.add:1}
+	
 	var rls = rules.duplicate()
 	var base_prob = 1.0/rules.possible_dice.size()
-	
 	# base probabilities
 	var probs:Dictionary
+	
 	
 	for x in rules.possible_dice:
 		probs[x] = base_prob
@@ -316,7 +316,7 @@ static func calc_probs(rules:Dictionary,explode_depth:int = 3):
 	for x in rules.reroll_once:
 		probs[x] = 0
 		prob_to_add += reroll_prob
-		
+	
 	for x in probs.keys():
 		probs[x] += prob_to_add
 	
@@ -346,7 +346,6 @@ static func calc_probs(rules:Dictionary,explode_depth:int = 3):
 		var exploded_results = probs.duplicate()
 		
 		for i in explode_probs.keys():
-			print(i)
 			add_to_dict(exploded_results,i,-explode_probs[i])
 			
 			var keys = al.add_to_array(probs.keys(),i)
@@ -357,7 +356,43 @@ static func calc_probs(rules:Dictionary,explode_depth:int = 3):
 			
 		probs = exploded_results
 	
+	var original_probs = probs.duplicate()
+	for i in range(rules.dice_count-1):
+		probs = merge_probs(probs,original_probs)
 	
-	
-	print(probs)
 	return probs
+
+static func comp_dice_probs(rules,explode_depth:int = 3)->Dictionary:
+	var al = preload('array_logic.gd')
+	var final_result = {0:1.0}
+	
+	for i in range(rules.rules_array.size()):
+		var result = calc_probs(rules.rules_array[i],explode_depth)
+		var new_keys = al.multiply_array(result.keys(),rules.signs[i])
+		var new_values = result.values()
+		result.clear()
+		for j in range(new_keys.size()):
+			result[int(new_keys[j])] = new_values[j]
+		
+		
+		final_result = merge_probs(final_result,result)
+	
+	return final_result
+
+static func dice_probs(dice:String,explode_depth:int=3):
+	var rules = comp_dice_parser(dice)
+	return comp_dice_probs(rules, explode_depth)
+
+
+static func merge_probs(prob1:Dictionary, prob2:Dictionary)-> Dictionary:
+	var out:Dictionary
+	for i in prob1.keys():
+		for j in prob2.keys():
+			add_to_dict(out,i+j,prob1[i]*prob2[j])
+	return out
+
+static func add_to_dict(dict:Dictionary,key,value):
+	if dict.has(key):
+		dict[key] += value
+	else:
+		dict[key] = value

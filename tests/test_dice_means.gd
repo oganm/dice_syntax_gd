@@ -39,3 +39,10 @@ func test_dice_mean():
 	
 	m_roll = mean_tester('1d6ro1')
 	assert_between(m_roll,3.9,4.1,'reroll once')
+
+
+func test_probs():
+	var probs = dice_syntax.dice_probs('1d4')
+	assert_true(probs[1] == 0.25,'wrong probabilies')
+	
+	probs = dice_syntax.dice_probs('4d6d1')
