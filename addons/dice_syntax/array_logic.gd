@@ -123,7 +123,7 @@ static func sample(array:Array,n:int,rng:RandomNumberGenerator, replace:bool = t
 		var samp = rng.randi_range(0,array.size()-1)
 		out.append(array[samp])
 		if not replace:
-			array.remove(samp)
+			array.remove_at(samp)
 		
 	
 	

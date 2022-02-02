@@ -3,7 +3,7 @@
 ## Basic Usage
 
 This addon adds the `dice_syntax` class, only populated with static functions. Simplest
-way to use involve using `dice_syntax.roll` with a string and a `RandomNumberGenerator `as an input.
+way to use involves using `dice_syntax.roll` with a string and a `RandomNumberGenerator` as an input.
 
 ```
 var rng = RandomNumberGenerator.new()
@@ -13,10 +13,10 @@ print(dice_syntax.roll('4d6k3',rng)) # roll 4d6, keep the highest 3
 {result:9, rolls:[{dice:[2, 3, 4], drop:[1], error:False, msg:, result:9}]}
 ```
 
-The output is a `Dictionary` where `result` is the sum of all the dice rolled while `roll` 
+The output is a `Dictionary` where `result` is the sum of all the dice rolled while `rolls`
 includes additional details about the roll.
 
-Altenratively dice parsing and rolling can be separated from each other.
+Alternatively dice parsing and rolling can be separated from each other.
 
 ```
 var rng = RandomNumberGenerator.new()

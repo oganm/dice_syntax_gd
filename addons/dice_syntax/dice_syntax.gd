@@ -21,8 +21,8 @@ static func dice_parser(dice_string:String)->Dictionary:
 	
 	
 	# if its an integer just add a number
-	if dice_string.is_valid_integer():
-		rolling_rules['add'] = int(dice_string)
+	if dice_string.is_valid_int():
+		rolling_rules['add'] = dice_string.to_int()
 		rolling_rules['dice_count'] = 0
 		rolling_rules['dice_side'] = 0
 		rolling_rules['sort'] = false
@@ -37,8 +37,8 @@ static func dice_parser(dice_string:String)->Dictionary:
 	dice_error(result!=null,'Malformed dice string',rolling_rules)
 	if result == '':
 		rolling_rules['dice_count'] = 1
-	elif result.is_valid_integer():
-		rolling_rules['dice_count'] = int(result)
+	elif result.is_valid_int():
+		rolling_rules['dice_count'] = result.to_int()
 	
 	# tokenize the rest of the rolling rules. a token character, followed by the
 	# next valid token character or end of string. while processing, remove
@@ -50,15 +50,15 @@ static func dice_parser(dice_string:String)->Dictionary:
 	
 	var dice_side = sm.str_extract(tokens[0],'(?<=d)[0-9]+')
 	dice_error(dice_side != null, "Malformed dice string: Unable to detect dice sides",rolling_rules)
-	rolling_rules['dice_side'] = int(dice_side)
+	rolling_rules['dice_side'] = dice_side.to_int()
 	# remove dice side token to make sure it's not confused with the drop rule
-	tokens.remove(0)
+	tokens.remove_at(0)
 	
 	# check for sort rule, if s exists, sort the results
 	var sort_rule = tokens.find('s')
 	rolling_rules['sort'] = sort_rule != -1
 	if sort_rule != -1:
-		tokens.remove(sort_rule)
+		tokens.remove_at(sort_rule)
 	
 	# check for drop rules, there can only be one 
 	var drop_rules = sm.strs_detect(tokens,'^(d|k)(h|l)?[0-9]+$')
@@ -72,11 +72,11 @@ static func dice_parser(dice_string:String)->Dictionary:
 		var drop_rule = tokens[drop_rules[0]]
 		match drop_rule.substr(0,1):
 			'd':
-				rolling_rules['drop_dice'] = int(drop_count)
+				rolling_rules['drop_dice'] = drop_count.to_int()
 			'k':
-				rolling_rules['drop_dice'] = int(rolling_rules['dice_count'])-int(drop_count)	
+				rolling_rules['drop_dice'] = rolling_rules['dice_count'].to_int()-drop_count.to_int()	
 		rolling_rules['drop_lowest'] = !(sm.str_detect(drop_rule,'dh') or sm.str_detect(drop_rule,'kl'))
-		tokens.remove(drop_rules[0])
+		tokens.remove_at(drop_rules[0])
 	
 	# reroll rules
 	var reroll_rules = sm.strs_detect(tokens,'r(?!o)')
@@ -87,9 +87,9 @@ static func dice_parser(dice_string:String)->Dictionary:
 	# dice_error(!al.all(al.array_in_array(dicePossibilities,reroll)),'Malformed dice string: rerolling all results',rolling_rules)
 	rolling_rules['reroll'] = reroll
 	# remove reroll rules
-	reroll_rules.invert()
+	reroll_rules.reverse()
 	for i in reroll_rules:
-		tokens.remove(i)
+		tokens.remove_at(i)
 	
 	# reroll once
 	reroll_rules = sm.strs_detect(tokens,'ro')
@@ -98,9 +98,9 @@ static func dice_parser(dice_string:String)->Dictionary:
 		reroll_once.append_array(range_determine(tokens[i], rolling_rules['dice_side']))
 	rolling_rules['reroll_once'] = reroll_once
 	
-	reroll_rules.invert()
+	reroll_rules.reverse()
 	for i in reroll_rules:
-		tokens.remove(i)
+		tokens.remove_at(i)
 	
 	
 	# new explode rules
@@ -119,9 +119,9 @@ static func dice_parser(dice_string:String)->Dictionary:
 				compound.append_array(range_determine(tokens[i], rolling_rules['dice_side'],rolling_rules['dice_side']))
 	rolling_rules['explode'] = explode
 	rolling_rules['compound'] = compound
-	explode_rules.invert()
+	explode_rules.reverse()
 	for i in explode_rules:
-		tokens.remove(i)
+		tokens.remove_at(i)
 	
 	dice_error(tokens.size()==0, 'Malformed dice string: Unprocessed tokens',rolling_rules)
 	var possible_dice = range(1,rolling_rules.dice_side+1)
@@ -165,7 +165,7 @@ static func dice_error(condition:bool,message:String,rolling_rules:Dictionary):
 static func roll_param(rolling_rules:Dictionary,rng:RandomNumberGenerator)->Dictionary:
 	var al = preload('array_logic.gd')
 	var out:Dictionary = {'error': false,
-	 'msg': '',
+	'msg': '',
 	'dice': [],
 	'drop': [],
 	'result':0}
@@ -223,7 +223,7 @@ static func roll_param(rolling_rules:Dictionary,rng:RandomNumberGenerator)->Dict
 		ordered_dice.sort()
 		var drop = []
 		if !rolling_rules.drop_lowest:
-			ordered_dice.invert()
+			ordered_dice.reverse()
 		for i in range(0,rolling_rules.drop_dice):
 			drop.append(ordered_dice[i])
 		var new_dice = []
@@ -232,7 +232,7 @@ static func roll_param(rolling_rules:Dictionary,rng:RandomNumberGenerator)->Dict
 			if not x in drop_copy:
 				new_dice.append(x)
 			else:
-				drop_copy.remove(drop_copy.find(x))
+				drop_copy.remove_at(drop_copy.find(x))
 		dice = new_dice
 		out['drop'] = drop
 		
@@ -253,9 +253,9 @@ static func comp_dice_parser(dice:String)->Dictionary:
 	var string_signs = sm.str_extract_all(dice,'\\+|-')
 	var component_signs = []
 	if dice.begins_with('-'):
-		dice_components.remove(0)
+		dice_components.remove_at(0)
 	elif dice.begins_with('+'):
-		dice_components.remove(0)
+		dice_components.remove_at(0)
 	else:
 		component_signs.append(1)
 	
