@@ -7,6 +7,7 @@ class_name dice_syntax
 static func dice_parser(dice_string:String)->Dictionary:
 	var sm = preload('string_manip.gd')
 	var al = preload('array_logic.gd')
+	var dh = preload('dice_helpers.gd')
 	
 	var rolling_rules: Dictionary = {'error': false, 
 	'msg': [],
@@ -34,7 +35,7 @@ static func dice_parser(dice_string:String)->Dictionary:
 	
 	# get the dice count or default to 1 if we just start with d.
 	var result = sm.str_extract(dice_string,'^[0-9]*?(?=d)')
-	dice_error(result!=null,'Malformed dice string',rolling_rules)
+	dh.dice_error(result!=null,'Malformed dice string',rolling_rules)
 	if result == '':
 		rolling_rules['dice_count'] = 1
 	elif result.is_valid_integer():
@@ -49,7 +50,7 @@ static func dice_parser(dice_string:String)->Dictionary:
 	
 	
 	var dice_side = sm.str_extract(tokens[0],'(?<=d)[0-9]+')
-	dice_error(dice_side != null, "Malformed dice string: Unable to detect dice sides",rolling_rules)
+	dh.dice_error(dice_side != null, "Malformed dice string: Unable to detect dice sides",rolling_rules)
 	rolling_rules['dice_side'] = int(dice_side)
 	# remove dice side token to make sure it's not confused with the drop rule
 	tokens.remove(0)
@@ -62,13 +63,13 @@ static func dice_parser(dice_string:String)->Dictionary:
 	
 	# check for drop rules, there can only be one 
 	var drop_rules = sm.strs_detect(tokens,'^(d|k)(h|l)?[0-9]+$')
-	dice_error(drop_rules.size() <= 1,"Malformed dice string: Can't include more than one drop rule",rolling_rules)
+	dh.dice_error(drop_rules.size() <= 1,"Malformed dice string: Can't include more than one drop rule",rolling_rules)
 	if drop_rules.size() == 0:
 		rolling_rules['drop_dice'] = 0
 		rolling_rules['drop_lowest'] = true
 	else:
 		var drop_count = sm.str_extract(tokens[drop_rules[0]], '[0-9]+$')
-		dice_error(drop_count!= null, 'Malformed dice string: No drop count provided',rolling_rules)
+		dh.dice_error(drop_count!= null, 'Malformed dice string: No drop count provided',rolling_rules)
 		var drop_rule = tokens[drop_rules[0]]
 		match drop_rule.substr(0,1):
 			'd':
@@ -82,7 +83,7 @@ static func dice_parser(dice_string:String)->Dictionary:
 	var reroll_rules = sm.strs_detect(tokens,'r(?!o)')
 	var reroll:Array = []
 	for i in reroll_rules:
-		reroll.append_array(range_determine(tokens[i], rolling_rules['dice_side']))
+		reroll.append_array(dh.range_determine(tokens[i], rolling_rules['dice_side']))
 	var dicePossibilities = range(1,rolling_rules['dice_side']+1)
 	# dice_error(!al.all(al.array_in_array(dicePossibilities,reroll)),'Malformed dice string: rerolling all results',rolling_rules)
 	rolling_rules['reroll'] = reroll
@@ -95,7 +96,7 @@ static func dice_parser(dice_string:String)->Dictionary:
 	reroll_rules = sm.strs_detect(tokens,'ro')
 	var reroll_once:Array = []
 	for i in reroll_rules:
-		reroll_once.append_array(range_determine(tokens[i], rolling_rules['dice_side']))
+		reroll_once.append_array(dh.range_determine(tokens[i], rolling_rules['dice_side']))
 	rolling_rules['reroll_once'] = reroll_once
 	
 	reroll_rules.invert()
@@ -113,53 +114,28 @@ static func dice_parser(dice_string:String)->Dictionary:
 			if tokens[i] == '!' and i+1 in explode_rules:
 				compound_flag = true
 			elif not compound_flag:
-				explode.append_array(range_determine(tokens[i], rolling_rules['dice_side'],rolling_rules['dice_side']))
+				explode.append_array(dh.range_determine(tokens[i], rolling_rules['dice_side'],rolling_rules['dice_side']))
 			elif compound_flag:
 				compound_flag = false
-				compound.append_array(range_determine(tokens[i], rolling_rules['dice_side'],rolling_rules['dice_side']))
+				compound.append_array(dh.range_determine(tokens[i], rolling_rules['dice_side'],rolling_rules['dice_side']))
 	rolling_rules['explode'] = explode
 	rolling_rules['compound'] = compound
 	explode_rules.invert()
 	for i in explode_rules:
 		tokens.remove(i)
 	
-	dice_error(tokens.size()==0, 'Malformed dice string: Unprocessed tokens',rolling_rules)
+	dh.dice_error(tokens.size()==0, 'Malformed dice string: Unprocessed tokens',rolling_rules)
 	var possible_dice = range(1,rolling_rules.dice_side+1)
 	possible_dice = al.array_subset(possible_dice,al.which(al.array_not(al.array_in_array(possible_dice, rolling_rules.reroll))))
-	dice_error(possible_dice.size()>0,"Invalid dice: No possible results",rolling_rules)
-	dice_error(not (al.all(al.array_in_array(possible_dice,rolling_rules.explode)) and rolling_rules.explode.size()>0),"Invalid dice: can't explode every result",rolling_rules)
-	dice_error(not (al.all(al.array_in_array(possible_dice,rolling_rules.compound)) and rolling_rules.compound.size()>0),"Invalid dice: can't compound every result",rolling_rules)
+	dh.dice_error(possible_dice.size()>0,"Invalid dice: No possible results",rolling_rules)
+	dh.dice_error(not (al.all(al.array_in_array(possible_dice,rolling_rules.explode)) and rolling_rules.explode.size()>0),"Invalid dice: can't explode every result",rolling_rules)
+	dh.dice_error(not (al.all(al.array_in_array(possible_dice,rolling_rules.compound)) and rolling_rules.compound.size()>0),"Invalid dice: can't compound every result",rolling_rules)
 	rolling_rules['possible_dice'] = possible_dice
 	
-	dice_error(not (rolling_rules.explode.size()>0 and rolling_rules.compound.size()>0), "Invalid dice: can't explode and compound with the same dice",rolling_rules)
+	dh.dice_error(not (rolling_rules.explode.size()>0 and rolling_rules.compound.size()>0), "Invalid dice: can't explode and compound with the same dice",rolling_rules)
 		
 	
 	return rolling_rules
-
-static func range_determine(token:String,dice_side:int, default:int = 1)->Array:
-	var sm = preload('string_manip.gd')
-	var out:Array = []
-	var number = sm.str_extract(token, '[0-9]*$')
-	# dice_error(!(sm.str_detect(token,'<|>') and number ==''),'Malformed dice string: Using  "<" or ">" identifiers requires an integer',rolling_rules)
-	# dice_error(!(sm.str_detect(token,'<') and sm.str_detect(token,'>')),'Malformed dice string: A range clause can only have one of "<" or ">"',rolling_rules)
-	if !sm.str_detect('<|>',token) and number == '':
-		out.append(default)
-	elif number != '' and !sm.str_detect(token, '<|>'):
-		out.append(int(number))
-	elif sm.str_detect(token, '<') and number != '':
-		out.append_array(range(1,int(number)+1))
-	elif sm.str_detect(token, '>') and number != '':
-		out.append_array(range(int(number),dice_side+1))
-	
-	return out
-
-# add error information to the output if something goes wrong.
-# dictionaries are passed by reference
-static func dice_error(condition:bool,message:String,rolling_rules:Dictionary):
-	if(!condition):
-		push_error(message)
-		rolling_rules['error'] = true
-		rolling_rules['msg'].append(message)
 
 
 static func roll_param(rolling_rules:Dictionary,rng:RandomNumberGenerator)->Dictionary:
@@ -296,6 +272,7 @@ static func roll_comp(rules:Dictionary, rng:RandomNumberGenerator)->Dictionary:
 
 static func calc_probs(rules:Dictionary,explode_depth:int = 3)->Dictionary:
 	var al = preload('array_logic.gd')
+	var dh = preload('dice_helpers.gd')
 	
 	# add can only appear alone
 	if rules.add>0:
@@ -321,9 +298,15 @@ static func calc_probs(rules:Dictionary,explode_depth:int = 3)->Dictionary:
 		probs[x] += prob_to_add
 	
 	# explosion and compound dice have the same probabilities and they can't coexist
+	# actually you are wrong when you consider drop/keep dice rules but you
+	# know what.. let's ignore that for now..
 	if rls.explode.size()==0:
 		rls.explode = rls.compound
 	
+	# for each explosion depth, calculate the results resulting in an explosion and
+	# their odds, substract the probability of the explosion from the
+	# probability of the outcome. add probabilities resulting from the explosion 
+	# to the results
 	if rls.explode.size()>0:
 		var explode_probs = {}
 		for x in rls.explode:
@@ -337,32 +320,35 @@ static func calc_probs(rules:Dictionary,explode_depth:int = 3)->Dictionary:
 				for k in explode_probs_intermediate.keys():
 					var key_to_add = j+k
 					var value_to_add = explode_probs_intermediate[k]*explode_probs_base[j]
-					add_to_dict(explode_to_add,key_to_add,value_to_add)	
+					dh.add_to_dict(explode_to_add,key_to_add,value_to_add)	
 			explode_probs_intermediate = explode_to_add.duplicate()
 			
 			for j in explode_to_add.keys():
-				add_to_dict(explode_probs,j,explode_to_add[j])
+				dh.add_to_dict(explode_probs,j,explode_to_add[j])
 		
 		var exploded_results = probs.duplicate()
 		
 		for i in explode_probs.keys():
-			add_to_dict(exploded_results,i,-explode_probs[i])
+			dh.add_to_dict(exploded_results,i,-explode_probs[i])
 			
 			var keys = al.add_to_array(probs.keys(),i)
 			var values = al.multiply_array(probs.values(),explode_probs[i])
 			
 			for j in range(keys.size()):
-				add_to_dict(exploded_results,int(keys[j]),values[j])
+				dh.add_to_dict(exploded_results,int(keys[j]),values[j])
 			
 		probs = exploded_results
 	
-	var original_probs = probs.duplicate()
-	for i in range(rules.dice_count-1):
-		probs = merge_probs(probs,original_probs)
+
+	if rules.dice_count>1:
+		var original_probs = probs.duplicate()
+		for i in range(rules.dice_count-1):
+			probs = dh.merge_probs(probs,original_probs)
 	
 	return probs
 
 static func comp_dice_probs(rules,explode_depth:int = 3)->Dictionary:
+	var dh = preload('dice_helpers.gd')
 	var al = preload('array_logic.gd')
 	var final_result = {0:1.0}
 	
@@ -375,7 +361,7 @@ static func comp_dice_probs(rules,explode_depth:int = 3)->Dictionary:
 			result[int(new_keys[j])] = new_values[j]
 		
 		
-		final_result = merge_probs(final_result,result)
+		final_result = dh.merge_probs(final_result,result)
 	
 	return final_result
 
@@ -384,15 +370,4 @@ static func dice_probs(dice:String,explode_depth:int=3):
 	return comp_dice_probs(rules, explode_depth)
 
 
-static func merge_probs(prob1:Dictionary, prob2:Dictionary)-> Dictionary:
-	var out:Dictionary
-	for i in prob1.keys():
-		for j in prob2.keys():
-			add_to_dict(out,i+j,prob1[i]*prob2[j])
-	return out
 
-static func add_to_dict(dict:Dictionary,key,value):
-	if dict.has(key):
-		dict[key] += value
-	else:
-		dict[key] = value

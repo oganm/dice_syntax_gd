@@ -59,7 +59,7 @@ static func array_in_array(array:Array,target:Array)->Array:
 		out.append(target.find(array[i]) != -1)
 	return out
 
-
+# return which indexes contain the elemnts of an array
 static func which_in_array(array:Array,target:Array)->Array:
 	var out:Array
 	for i in range(array.size()):
@@ -127,6 +127,19 @@ static func sample(array:Array,n:int,rng:RandomNumberGenerator, replace:bool = t
 		
 	
 	
+	return out
+
+# append single elements/arrays with each other
+static func append(e1,e2)->Array:
+	var out = []
+	if typeof(e1)==TYPE_ARRAY:
+		out.append_array(e1)
+	else:
+		out.append(e1)
+	if typeof(e2)==TYPE_ARRAY:
+		out.append_array(e2)
+	else:
+		out.append(e2)
 	return out
 
 # sample from an array using given weights
