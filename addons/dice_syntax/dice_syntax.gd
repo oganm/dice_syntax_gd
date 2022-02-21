@@ -3,7 +3,7 @@ class_name dice_syntax
 
 
 
-
+# basic dice parser for single rolls
 static func dice_parser(dice_string:String)->Dictionary:
 	var sm = preload('string_manip.gd')
 	var al = preload('array_logic.gd')
@@ -15,7 +15,8 @@ static func dice_parser(dice_string:String)->Dictionary:
 	'reroll_once': [],
 	'reroll': [],
 	'possible_dice': [],
-	'drop_dice':0}
+	'drop_dice':0,
+	'drop_lowest':true}
 	var valid_tokens = '[dksr!]'
 	
 	dice_string = dice_string.to_lower()
@@ -38,6 +39,8 @@ static func dice_parser(dice_string:String)->Dictionary:
 	dh.dice_error(result!=null,'Malformed dice string',rolling_rules)
 	if result == '':
 		rolling_rules['dice_count'] = 1
+	elif result == null:
+		return rolling_rules
 	elif result.is_valid_integer():
 		rolling_rules['dice_count'] = int(result)
 	
@@ -96,6 +99,8 @@ static func dice_parser(dice_string:String)->Dictionary:
 	reroll_rules = sm.strs_detect(tokens,'ro')
 	var reroll_once:Array = []
 	for i in reroll_rules:
+		var to_reroll = dh.range_determine(tokens[i], rolling_rules['dice_side'])
+		dh.dice_error(al.which_in_array(to_reroll,reroll_once).size()==0,"Malformed dice string: can't reroll the same number once more than once.",rolling_rules)
 		reroll_once.append_array(dh.range_determine(tokens[i], rolling_rules['dice_side']))
 	rolling_rules['reroll_once'] = reroll_once
 	
@@ -130,6 +135,8 @@ static func dice_parser(dice_string:String)->Dictionary:
 	dh.dice_error(possible_dice.size()>0,"Invalid dice: No possible results",rolling_rules)
 	dh.dice_error(not (al.all(al.array_in_array(possible_dice,rolling_rules.explode)) and rolling_rules.explode.size()>0),"Invalid dice: can't explode every result",rolling_rules)
 	dh.dice_error(not (al.all(al.array_in_array(possible_dice,rolling_rules.compound)) and rolling_rules.compound.size()>0),"Invalid dice: can't compound every result",rolling_rules)
+	dh.dice_error(al.which_in_array(rolling_rules.explode,rolling_rules.compound).size()==0,"Invalid dice: Can't explode what you compound.",rolling_rules)
+	dh.dice_error(rolling_rules.drop_dice<rolling_rules.dice_count,'Invalid dice: cannot drop all the dice you have',rolling_rules)
 	rolling_rules['possible_dice'] = possible_dice
 	
 	dh.dice_error(not (rolling_rules.explode.size()>0 and rolling_rules.compound.size()>0), "Invalid dice: can't explode and compound with the same dice",rolling_rules)
@@ -137,11 +144,11 @@ static func dice_parser(dice_string:String)->Dictionary:
 	
 	return rolling_rules
 
-
+# rolling a single roll from a parsed rules
 static func roll_param(rolling_rules:Dictionary,rng:RandomNumberGenerator)->Dictionary:
 	var al = preload('array_logic.gd')
 	var out:Dictionary = {'error': false,
-	 'msg': '',
+	 'msg': [],
 	'dice': [],
 	'drop': [],
 	'result':0}
@@ -221,7 +228,7 @@ static func roll_param(rolling_rules:Dictionary,rng:RandomNumberGenerator)->Dict
 	
 	return out
 
-
+# parsing composite rolls (with +,- in the string)
 static func comp_dice_parser(dice:String)->Dictionary:
 	var sm = preload('string_manip.gd')
 	
@@ -245,47 +252,53 @@ static func comp_dice_parser(dice:String)->Dictionary:
 	
 	return {'rules_array': rules_array, 'signs':component_signs}
 
-static func roll(dice:String,rng:RandomNumberGenerator):
+# rolling any dice, includes parsing and rolling
+static func roll(dice:String,rng:RandomNumberGenerator)->Dictionary:
 	var rules = comp_dice_parser(dice)
 	return roll_comp(rules,rng)
 
 
-
+# roll composite rolls from parsed rules
 static func roll_comp(rules:Dictionary, rng:RandomNumberGenerator)->Dictionary:
 	var results:Array
+	var error = false
+	var msg = []
 	
 	for i in range(rules.rules_array.size()):
 		var result = roll_param(rules.rules_array[i],rng)
 		result.result *= rules.signs[i]
 		results.append(result)
+		if(rules.rules_array[i].error):
+			error = true
+		msg.append_array(rules.rules_array[i].msg)
 	
 	var sum = 0
 	for x in results:
 		sum += x.result
 	
-	var out = {'result':sum, 'rolls':results}
-	
+	var out = {'result':sum, 'rolls':results,'error': error, 'msg': msg}
 	return out
 
-
-
-
+# calucate probabilities of a single roll
 static func calc_probs(rules:Dictionary,explode_depth:int = 3)->Dictionary:
 	var al = preload('array_logic.gd')
 	var dh = preload('dice_helpers.gd')
+	
+	if rules.error:
+		var probs = {0:1}
+		return probs
 	
 	# add can only appear alone
 	if rules.add>0:
 		return {rules.add:1}
 	
-	var rls = rules.duplicate()
 	var base_prob = 1.0/rules.possible_dice.size()
+	
 	# base probabilities
 	var probs:Dictionary
-	
-	
 	for x in rules.possible_dice:
 		probs[x] = base_prob
+		
 	
 	# reroll once adjustment
 	var reroll_prob = pow(base_prob, 2.0)
@@ -297,57 +310,50 @@ static func calc_probs(rules:Dictionary,explode_depth:int = 3)->Dictionary:
 	for x in probs.keys():
 		probs[x] += prob_to_add
 	
-	# explosion and compound dice have the same probabilities and they can't coexist
-	# actually you are wrong when you consider drop/keep dice rules but you
-	# know what.. let's ignore that for now..
-	if rls.explode.size()==0:
-		rls.explode = rls.compound
 	
-	# for each explosion depth, calculate the results resulting in an explosion and
-	# their odds, substract the probability of the explosion from the
-	# probability of the outcome. add probabilities resulting from the explosion 
-	# to the results
-	if rls.explode.size()>0:
-		var explode_probs = {}
-		for x in rls.explode:
-			explode_probs[x] = probs[x]
-		var explode_probs_base = explode_probs.duplicate()
-		var explode_probs_intermediate = explode_probs.duplicate()
-		
-		for i in range(explode_depth -1 ):
-			var explode_to_add = {}
-			for j in explode_probs_base.keys():
-				for k in explode_probs_intermediate.keys():
-					var key_to_add = j+k
-					var value_to_add = explode_probs_intermediate[k]*explode_probs_base[j]
-					dh.add_to_dict(explode_to_add,key_to_add,value_to_add)	
-			explode_probs_intermediate = explode_to_add.duplicate()
-			
-			for j in explode_to_add.keys():
-				dh.add_to_dict(explode_probs,j,explode_to_add[j])
-		
-		var exploded_results = probs.duplicate()
-		
-		for i in explode_probs.keys():
-			dh.add_to_dict(exploded_results,i,-explode_probs[i])
-			
-			var keys = al.add_to_array(probs.keys(),i)
-			var values = al.multiply_array(probs.values(),explode_probs[i])
-			
-			for j in range(keys.size()):
-				dh.add_to_dict(exploded_results,int(keys[j]),values[j])
-			
-		probs = exploded_results
+	# transform keys into arrays for further processing
+	var new_probs: Dictionary
+	for x in probs.keys():
+		new_probs[[x]] = probs[x] 
+	probs = new_probs
 	
+	
+	if rules.explode.size()>0:
+		probs = dh.blow_up(probs,rules.explode, explode_depth)
+	
+	if rules.compound.size()>0:
+		probs = dh.blow_up(probs,rules.compound, explode_depth)
+		probs = dh.collapse_probs(probs,true)
+		pass
+	
+	
+	# rolling multiple dice
+	var original_probs = probs.duplicate()
+	for i in range(rules.dice_count-1):
+		probs = dh.merge_probs_keep_dice(probs,original_probs)
+		pass
+	
+	# drop dice
+	if rules.drop_dice>0:
+		var post_drop:Dictionary
+		if rules.drop_lowest:
+			for k in probs.keys():
+				var new_key = k.slice(rules.drop_dice,k.size()-1)
+				dh.add_to_dict(post_drop,new_key,probs[k])
+		else:
+			for k in probs.keys():
+				var new_key = k.slice(0,k.size()-1-rules.drop_dice)
+				dh.add_to_dict(post_drop,new_key,probs[k])
+		probs = post_drop.duplicate()
 
-	if rules.dice_count>1:
-		var original_probs = probs.duplicate()
-		for i in range(rules.dice_count-1):
-			probs = dh.merge_probs(probs,original_probs)
+	
+	# collapse results into single sums
+	probs = dh.collapse_probs(probs, false)
 	
 	return probs
 
-static func comp_dice_probs(rules,explode_depth:int = 3)->Dictionary:
+# calculate probabilities for composite rolls
+static func comp_dice_probs(rules,explode_depth:int = 1)->Dictionary:
 	var dh = preload('dice_helpers.gd')
 	var al = preload('array_logic.gd')
 	var final_result = {0:1.0}
@@ -365,7 +371,8 @@ static func comp_dice_probs(rules,explode_depth:int = 3)->Dictionary:
 	
 	return final_result
 
-static func dice_probs(dice:String,explode_depth:int=3):
+# calculate probabilties of any roll, includes parsing and calculating
+static func dice_probs(dice:String,explode_depth:int=3)->Dictionary:
 	var rules = comp_dice_parser(dice)
 	return comp_dice_probs(rules, explode_depth)
 
