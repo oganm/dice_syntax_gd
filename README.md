@@ -1,5 +1,15 @@
 # dice_syntax_gd
 
+Table of Contents
+=================
+
+   * [Basic Usage](#basic-usage)
+   * [Probability Calculations](#probability-calculations)
+   * [Rolling from probabilities](#rolling-from-probabilities)
+   * [Error handling](#error-handling)
+   * [Supported Syntax](#supported-syntax)
+   * [License](#license)
+
 ## Basic Usage
 
 This addon adds the `dice_syntax` class, only populated with static functions. Simplest
