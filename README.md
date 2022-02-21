@@ -28,7 +28,7 @@ print(dice_syntax.roll_comp(parsed_dice,rng))
 ```
 ## Probability Calculations
 
-You can calucate probabilities for a given dice roll.
+You can calculate probabilities for a given dice roll.
 
 ```
 print(dice_syntax.dice_probs('4d6d1'))
