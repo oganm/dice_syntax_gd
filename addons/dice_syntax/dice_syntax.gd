@@ -276,6 +276,9 @@ static func roll_comp(rules:Dictionary, rng:RandomNumberGenerator)->Dictionary:
 	for x in results:
 		sum += x.result
 	
+	if error:
+		sum = 0
+	
 	var out = {'result':sum, 'rolls':results,'error': error, 'msg': msg}
 	return out
 
@@ -357,8 +360,11 @@ static func comp_dice_probs(rules,explode_depth:int = 1)->Dictionary:
 	var dh = preload('dice_helpers.gd')
 	var al = preload('array_logic.gd')
 	var final_result = {0:1.0}
+	var error = false
 	
 	for i in range(rules.rules_array.size()):
+		if(rules.rules_array[i].error):
+			error = true
 		var result = calc_probs(rules.rules_array[i],explode_depth)
 		var new_keys = al.multiply_array(result.keys(),rules.signs[i])
 		var new_values = result.values()
@@ -369,6 +375,9 @@ static func comp_dice_probs(rules,explode_depth:int = 1)->Dictionary:
 		
 		final_result = dh.merge_probs(final_result,result)
 	
+	if error:
+		return {0:1.0}
+	
 	return final_result
 
 # calculate probabilties of any roll, includes parsing and calculating
@@ -377,4 +386,8 @@ static func dice_probs(dice:String,explode_depth:int=3)->Dictionary:
 	return comp_dice_probs(rules, explode_depth)
 
 
-
+static func expected_value(probs:Dictionary)->float:
+	var out = 0
+	for k in probs.keys():
+		out += probs[k]*float(k)
+	return(out)

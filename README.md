@@ -26,6 +26,56 @@ print(dice_syntax.roll_comp(parsed_dice,rng))
 ```
 {result:9, rolls:[{dice:[2, 3, 4], drop:[1], error:False, msg:, result:9}]}
 ```
+## Probability Calculations
+
+You can calucate probabilities for a given dice roll.
+
+```
+print(dice_syntax.dice_probs('4d6d1'))
+```
+```
+{10:0.094136, 11:0.114198, 12:0.128858, 13:0.132716, 14:0.123457, 15:0.10108, 16:0.072531, 17:0.041667, 18:0.016204, 3:0.000772, 4:0.003086, 5:0.007716, 6:0.016204, 7:0.029321, 8:0.04784, 9:0.070216}
+```
+
+Use `dice_syntax.expected_value` to get the mean result
+```
+var probs = dice_syntax.dice_probs('4d6d1')
+print(dice_syntax.expected_value(probs))
+```
+```
+12.244599
+```
+
+As with rolling you can separate parsing and calculation of probabilities.
+```
+var parsed_dice = dice_syntax.comp_dice_parser('4d6d1')
+print(dice_syntax.comp_dice_probs(parsed_dice))
+```
+```
+{10:0.094136, 11:0.114198, 12:0.128858, 13:0.132716, 14:0.123457, 15:0.10108, 16:0.072531, 17:0.041667, 18:0.016204, 3:0.000772, 4:0.003086, 5:0.007716, 6:0.016204, 7:0.029321, 8:0.04784, 9:0.070216}
+```
+
+## Error handling
+
+If the parser fails to parse any component of the dice, you will get a console error
+which is also added to the output object
+
+```
+print(dice_syntax.roll("help i'm trapped in a dice factory+1d6",rng))
+```
+```
+{error:True, msg:[Malformed dice string], result:0, rolls:[{dice:[], drop:[], error:True, msg:[Malformed dice string], result:0}, {dice:[4], drop:[], error:False, msg:[], result:4}]}
+```
+
+Note that the final result is set to 0 even if part of the dice was able to be rolled.
+
+Probability calculations will return a `{0:1}` if the input dice contains an error
+```
+print(dice_syntax.dice_probs("help i'm trapped in a dice factory+1d6"))
+```
+```
+{0:1}
+```
 
 ## Supported Syntax
 
