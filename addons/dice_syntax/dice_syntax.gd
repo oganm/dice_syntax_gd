@@ -391,3 +391,9 @@ static func expected_value(probs:Dictionary)->float:
 	for k in probs.keys():
 		out += probs[k]*float(k)
 	return(out)
+
+
+static func roll_from_probs(probs:Dictionary,rng:RandomNumberGenerator,n=1)->Array:
+	var al = preload('array_logic.gd')
+	return al.sample_weights(probs.keys(),probs.values(),n,rng)
+	

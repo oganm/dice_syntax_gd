@@ -55,6 +55,29 @@ print(dice_syntax.comp_dice_probs(parsed_dice))
 {10:0.094136, 11:0.114198, 12:0.128858, 13:0.132716, 14:0.123457, 15:0.10108, 16:0.072531, 17:0.041667, 18:0.016204, 3:0.000772, 4:0.003086, 5:0.007716, 6:0.016204, 7:0.029321, 8:0.04784, 9:0.070216}
 ```
 
+## Rolling from probabilities
+
+Random numbers can be generated from arbitrary dictionaries that include keys as outcomes
+and values as weights, matching the output of probability calculation functions.
+
+```
+var dict = {1:0.5,2:0.5}
+print(dice_syntax.roll_from_probs(dict,rng,10))
+```
+```
+[2, 2, 1, 2, 2, 1, 1, 2, 1, 1]
+```
+
+```
+var probs = dice_syntax.dice_probs('1d2')
+print(dice_syntax.roll_from_probs(probs,rng,10))
+```
+```
+[2, 1, 1, 2, 1, 1, 1, 1, 1, 2]
+```
+
+
+
 ## Error handling
 
 If the parser fails to parse any component of the dice, you will get a console error

@@ -63,8 +63,9 @@ func test_errors():
 	assert_true(roll.msg.size()==1)
 
 func test_probs():
-	pass
-	#var probs = dice_syntax.dice_probs('1d4')
-	#assert_true(probs[1] == 0.25,'wrong probabilies')
 	
-	#probs = dice_syntax.dice_probs('4d6d1')
+	var probs = dice_syntax.dice_probs('1d4')
+	assert_true(probs[1] == 0.25,'wrong probabilies')
+	
+	probs = dice_syntax.dice_probs('4d6d1')
+	assert_almost_eq(probs[3],0.000772,0.0001,"wrong probabilities")
