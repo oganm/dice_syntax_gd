@@ -39,6 +39,9 @@ func test_dice_mean():
 	
 	m_roll = mean_tester('1d6ro1')
 	assert_between(m_roll,3.9,4.1,'reroll once')
+	
+	m_roll = mean_tester('1d6!')
+	assert_between(m_roll,4.1,4.3,'explode')
 
 
 func test_errors():
@@ -69,3 +72,14 @@ func test_probs():
 	
 	probs = dice_syntax.dice_probs('4d6d1')
 	assert_almost_eq(probs[3],0.000772,0.0001,"wrong probabilities")
+
+func test_parsing():
+	var parsed = dice_syntax.dice_parser('3d6+2d6')
+	assert_true(typeof(parsed) == TYPE_DICTIONARY)
+	assert_true(parsed.rules_array.size() == 2)
+	
+	var rolled = dice_syntax.roll_parsed(parsed,rng)
+	assert_true(typeof(rolled) == TYPE_DICTIONARY)
+	assert_true(rolled.rolls.size() == 2)
+	
+	assert_false(rolled.error)
