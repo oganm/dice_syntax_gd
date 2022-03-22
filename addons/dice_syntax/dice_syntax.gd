@@ -14,14 +14,14 @@ static func dice_parser(dice:String)->Dictionary:
 	var string_signs = sm.str_extract_all(dice,'\\+|-')
 	var component_signs = []
 	if dice.begins_with('-'):
-		dice_components.remove(0)
+		dice_components.remove_at(0)
 	elif dice.begins_with('+'):
-		dice_components.remove(0)
+		dice_components.remove_at(0)
 	else:
 		component_signs.append(1)
 	
 	for i in range(string_signs.size()):
-		component_signs.append(int(string_signs[i] + '1'))
+		component_signs.append((string_signs[i] + '1').to_int())
 	var rules_array = []
 	
 	for x in dice_components:
