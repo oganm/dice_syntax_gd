@@ -1,5 +1,34 @@
 extends GDScript
 
+# convert integer to a different base, return the result as an array of digits
+static func base_convert(number:int,base:int)->Array:
+	var current_num = number
+	var remainder:int
+	var result:int
+	var digits = []
+	while true:
+		result = current_num/base
+		remainder = current_num%base
+		digits.append(remainder)
+		if result > remainder:
+			current_num = result
+		else:
+			if result != 0:
+				digits.append(result)
+			break
+	digits.invert()
+	return digits	
+
+# convert integer inter to base 26 and return as letters for use as names in expressions
+static func int_to_letter(number:int)->String:
+	var letters = 'zabcdefghijklmnopqrstuvwxy'
+	var num_array = base_convert(number,letters.length())
+	var out:String
+	
+	for x in num_array:
+		out += letters[x]
+	
+	return out
 
 # keys are dice totals
 static func merge_probs(prob1:Dictionary, prob2:Dictionary)-> Dictionary:

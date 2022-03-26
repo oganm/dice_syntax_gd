@@ -3,7 +3,27 @@ class_name dice_syntax
 
 
 
-
+static func _dice_parser2(dice:String)->Dictionary:
+	var sm = preload('string_manip.gd')
+	var sdf = preload('single_dice_funs.gd')
+	var dh = preload('dice_helpers.gd')
+	
+	var dice_regex = '[0-9]*d[0-9]*[dksro!<>0-9]*'
+	
+	var dice_components = sm.str_extract_all(dice,dice_regex)
+	var dice_expression_compoments = sm.str_split(dice,dice_regex)
+	var dice_expression = ''
+	for i in range(dice_expression_compoments.size()):
+		dice_expression += dice_expression_compoments[i]
+		if i < dice_components.size():
+			dice_expression += dh.int_to_letter(i)
+	
+	var rules_array = []
+	for x in dice_components:
+		var rr = sdf.base_dice_parser(x)
+		rules_array.append(rr)
+	
+	return {'rules_array':rules_array,'dice_expression':dice_expression}
 
 # parsing composite rolls (with +,- in the string)
 static func dice_parser(dice:String)->Dictionary:
