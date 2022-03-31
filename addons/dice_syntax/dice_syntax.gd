@@ -64,11 +64,11 @@ static func parsed_dice_probs(rules, explode_depth:int=1)->Dictionary:
 		if(rules.rules_array[i].error):
 			error = true
 		var result = sdf.base_calc_rule_probs(rules.rules_array[i],explode_depth)
-		if i == 0:
+		if i == 0: # if it's the first iteration populate the dictionary
 			for x in result.keys():
 				final_result[[x]] = result[x]
 		else:
-			final_result = dh.merge_probs_keep_dice(final_result,result)
+			final_result = dh.merge_probs_keep_dice(final_result,result,false)
 	
 	if error:
 		return {0:1.0}

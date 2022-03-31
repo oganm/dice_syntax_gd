@@ -39,13 +39,14 @@ static func merge_probs(prob1:Dictionary, prob2:Dictionary)-> Dictionary:
 	return out
 
 # keys are individual dice
-static func merge_probs_keep_dice(prob1:Dictionary, prob2:Dictionary)->Dictionary:
+static func merge_probs_keep_dice(prob1:Dictionary, prob2:Dictionary, sort:bool = true)->Dictionary:
 	var al = preload('array_logic.gd')
 	var out:Dictionary
 	for i in prob1.keys():
 		for j in prob2.keys():
 			var new_key:Array = al.append(i,j)
-			new_key.sort()
+			if sort:
+				new_key.sort()
 			add_to_dict(out,new_key,prob1[i]*prob2[j])
 			
 			# out[new_key] = prob1[i]*prob2[j]
