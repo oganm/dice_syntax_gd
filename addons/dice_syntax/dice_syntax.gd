@@ -78,6 +78,9 @@ static func parsed_dice_probs(rules, explode_depth:int=1)->Dictionary:
 		var new_key = rules.dice_expression.execute(x)
 		dh.add_to_dict(processed_results,new_key,final_result[x])
 	
+	if final_result.size()==0:
+		processed_results[float(rules.dice_expression.execute())] = 1
+	
 	return processed_results
 
 static func dice_probs(dice:String,explode_depth:int=1)->Dictionary:

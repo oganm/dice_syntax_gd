@@ -18,4 +18,4 @@ func test_maths_parsing():
 	var parsed = dice_syntax.dice_parser('pow(1d2,1d2)')
 	assert_true(parsed.rules_array.size()==2)
 	assert_true(parsed.expression_string == 'pow(z,a)')
-	
+	assert_true(parsed.dice_expression.execute([2,2])==4)

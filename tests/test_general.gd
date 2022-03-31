@@ -52,6 +52,9 @@ func test_probs():
 	
 	probs = dice_syntax.dice_probs('4d6d1')
 	assert_almost_eq(probs[3.0],0.000772,0.0001,"wrong probabilities")
+	
+	probs = dice_syntax.dice_probs('13')
+	assert_almost_eq(probs[13.0],1,0.0001, "wrong probabilities")
 
 func test_parsing():
 	var parsed = dice_syntax.dice_parser('3d6+2d6')
