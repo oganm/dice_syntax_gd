@@ -53,7 +53,10 @@ static func base_dice_parser(dice_string:String)->Dictionary:
 	
 	var dice_side = sm.str_extract(tokens[0],'(?<=d)[0-9]+')
 	dh.dice_error(dice_side != null, "Malformed dice string: Unable to detect dice sides",rolling_rules)
-	rolling_rules['dice_side'] = int(dice_side)
+	if dice_side!=null:
+		rolling_rules['dice_side'] = int(dice_side)
+	else:
+		rolling_rules['dice_side'] = 0
 	# remove dice side token to make sure it's not confused with the drop rule
 	tokens.remove(0)
 	
