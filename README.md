@@ -132,7 +132,6 @@ print(dice_syntax.dice_probs("help i'm trapped in a dice factory+1d6"))
 - `4d6`: roll 4 six sided dice
 - `4d6s`: roll 4d6 sort the results
 - `4d6+2d5/2`: perform arbitrary mathematical operations. The statements are turned into [Expressions](https://docs.godotengine.org/en/stable/classes/class_expression.html) so everything supported by them will work fine. Note that outputs of dice will always be `float`s.
-- `4d6+1`: roll 4d6 add 1 to the result
 - `4d6d1`: roll 4d6, drop the lowest one
 - `4d6dh1`: roll 4d6, drop the highest one
 - `4d6k1`: roll 4d6, keep the highest one
