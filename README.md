@@ -28,7 +28,8 @@ print(dice_syntax.roll('4d6k3',rng)) # roll 4d6, keep the highest 3
 The output is a `Dictionary` where `result` is the sum of all the dice rolled while `rolls`
 includes additional details about the roll.
 
-Alternatively dice parsing and rolling can be separated from each other.
+Alternatively dice parsing and rolling can be separated from each other. You can use
+this if you run into bottlenecks since parsing is more expensive than rolling.
 
 ```
 var rng = RandomNumberGenerator.new()
@@ -40,7 +41,7 @@ print(dice_syntax.roll_parsed(parsed_dice,rng))
 ```
 
 In addition to it's own syntax, the input will be parsed into an [Expression](https://docs.godotengine.org/en/stable/classes/class_expression.html)
-so arbitrary operations can be performed on the dice rolled
+so arbitrary operations can be performed on the dice rolled.
 
 ```
 var rng = RandomNumberGenerator.new()
@@ -72,6 +73,7 @@ print(dice_syntax.expected_value(probs))
 ```
 
 As with rolling you can separate parsing and calculation of probabilities.
+
 ```
 var parsed_dice = dice_syntax.dice_parser('4d6d1')
 print(dice_syntax.parsed_dice_probs(parsed_dice))
