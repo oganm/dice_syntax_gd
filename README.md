@@ -38,6 +38,19 @@ print(dice_syntax.roll_parsed(parsed_dice,rng))
 ```
 {error:False, msg:[], result:11, rolls:[{dice:[4, 2, 5], drop:[1], error:False, msg:[], result:11}]}
 ```
+
+In addition to it's own syntax, the input will be parsed into an [Expression](https://docs.godotengine.org/en/stable/classes/class_expression.html)
+so arbitrary operations can be performed on the dice rolled
+
+```
+var rng = RandomNumberGenerator.new()
+print(dice_syntax.roll('2d6/1d2',rng))
+```
+```
+{error:False, msg:[], result:3.5, rolls:[{dice:[6, 1], drop:[], error:False, msg:[], result:7}, {dice:[2], drop:[], error:False, msg:[], result:2}]}
+```
+
+
 ## Probability Calculations
 
 You can calculate probabilities for a given dice roll.
@@ -116,7 +129,7 @@ print(dice_syntax.dice_probs("help i'm trapped in a dice factory+1d6"))
 
 - `4d6`: roll 4 six sided dice
 - `4d6s`: roll 4d6 sort the results
-- `4d6+2d5/2`: perform arbitrary mathematical operations. The statements are turned into [Expressions](https://docs.godotengine.org/en/stable/classes/class_expression.html) so everything supported by them will work fine.
+- `4d6+2d5/2`: perform arbitrary mathematical operations. The statements are turned into [Expressions](https://docs.godotengine.org/en/stable/classes/class_expression.html) so everything supported by them will work fine. Note that outputs of dice will always be `float`s.
 - `4d6+1`: roll 4d6 add 1 to the result
 - `4d6d1`: roll 4d6, drop the lowest one
 - `4d6dh1`: roll 4d6, drop the highest one
