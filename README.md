@@ -99,7 +99,7 @@ which is also added to the output object
 print(dice_syntax.roll("help i'm trapped in a dice factory+1d6",rng))
 ```
 ```
-{error:True, msg:[Malformed dice string], result:0, rolls:[{dice:[], drop:[], error:True, msg:[Malformed dice string], result:0}, {dice:[4], drop:[], error:False, msg:[], result:4}]}
+{error:True, msg:[Malformed dice string: Unable to detect dice sides, Malformed dice string: Unable to detect dice sides], result:0, rolls:[{dice:[], drop:[], error:True, msg:[Malformed dice string: Unable to detect dice sides], result:0}, {dice:[], drop:[], error:True, msg:[Malformed dice string: Unable to detect dice sides], result:0}]}
 ```
 
 Note that the final result is set to 0 even if part of the dice was able to be rolled.

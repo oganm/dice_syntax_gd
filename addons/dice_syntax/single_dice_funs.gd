@@ -8,18 +8,22 @@ static func base_dice_parser(dice_string:String)->Dictionary:
 	var al = preload('array_logic.gd')
 	var dh = preload('dice_helpers.gd')
 	
-	var rolling_rules: Dictionary = {'error': false, 
+	var rolling_rules: Dictionary = {
+	'error': false, 
 	'msg': [],
+	'compound':[],
+	'explode':[],
 	'reroll_once': [],
 	'reroll': [],
 	'possible_dice': [],
 	'drop_dice':0,
-	'drop_lowest':true}
+	'drop_lowest':true,
+	'dice_side':0,
+	'dice_count':0,
+	'sort':false}
 	var valid_tokens = '[dksr!]'
 	
 	dice_string = dice_string.to_lower()
-	
-	
 	
 	
 	# get the dice count or default to 1 if we just start with d.
@@ -45,7 +49,7 @@ static func base_dice_parser(dice_string:String)->Dictionary:
 	if dice_side!=null:
 		rolling_rules['dice_side'] = int(dice_side)
 	else:
-		rolling_rules['dice_side'] = 0
+		return rolling_rules
 	# remove dice side token to make sure it's not confused with the drop rule
 	tokens.remove(0)
 	

@@ -19,3 +19,7 @@ func test_maths_parsing():
 	assert_true(parsed.rules_array.size()==2)
 	assert_true(parsed.expression_string == 'pow(z,a)')
 	assert_true(parsed.dice_expression.execute([2,2])==4)
+	
+	var probs = dice_syntax.parsed_dice_probs(parsed)
+	assert_almost_eq(probs[1.0],0.5,0.0001, "wrong probabilities")
+	assert_almost_eq(probs[2.0],0.25,0.0001, "wrong probabilities")
