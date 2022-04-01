@@ -28,7 +28,8 @@ print(dice_syntax.roll('4d6k3',rng)) # roll 4d6, keep the highest 3
 The output is a `Dictionary` where `result` is the sum of all the dice rolled while `rolls`
 includes additional details about the roll.
 
-Alternatively dice parsing and rolling can be separated from each other.
+Alternatively dice parsing and rolling can be separated from each other. You can use
+this if you run into bottlenecks since parsing is more expensive than rolling.
 
 ```
 var rng = RandomNumberGenerator.new()
@@ -38,6 +39,19 @@ print(dice_syntax.roll_parsed(parsed_dice,rng))
 ```
 {error:False, msg:[], result:11, rolls:[{dice:[4, 2, 5], drop:[1], error:False, msg:[], result:11}]}
 ```
+
+In addition to it's own syntax, the input will be parsed into an [Expression](https://docs.godotengine.org/en/stable/classes/class_expression.html)
+so arbitrary operations can be performed on the dice rolled.
+
+```
+var rng = RandomNumberGenerator.new()
+print(dice_syntax.roll('2d6/1d2',rng))
+```
+```
+{error:False, msg:[], result:3.5, rolls:[{dice:[6, 1], drop:[], error:False, msg:[], result:7}, {dice:[2], drop:[], error:False, msg:[], result:2}]}
+```
+
+
 ## Probability Calculations
 
 You can calculate probabilities for a given dice roll.
@@ -59,6 +73,7 @@ print(dice_syntax.expected_value(probs))
 ```
 
 As with rolling you can separate parsing and calculation of probabilities.
+
 ```
 var parsed_dice = dice_syntax.dice_parser('4d6d1')
 print(dice_syntax.parsed_dice_probs(parsed_dice))
@@ -99,7 +114,7 @@ which is also added to the output object
 print(dice_syntax.roll("help i'm trapped in a dice factory+1d6",rng))
 ```
 ```
-{error:True, msg:[Malformed dice string], result:0, rolls:[{dice:[], drop:[], error:True, msg:[Malformed dice string], result:0}, {dice:[4], drop:[], error:False, msg:[], result:4}]}
+{error:True, msg:[Malformed dice string: Unable to detect dice sides, Malformed dice string: Unable to detect dice sides], result:0, rolls:[{dice:[], drop:[], error:True, msg:[Malformed dice string: Unable to detect dice sides], result:0}, {dice:[], drop:[], error:True, msg:[Malformed dice string: Unable to detect dice sides], result:0}]}
 ```
 
 Note that the final result is set to 0 even if part of the dice was able to be rolled.
@@ -116,9 +131,7 @@ print(dice_syntax.dice_probs("help i'm trapped in a dice factory+1d6"))
 
 - `4d6`: roll 4 six sided dice
 - `4d6s`: roll 4d6 sort the results
-- `4d6+3d3`: roll 4d6 and 3d3, sum the results
-- `4d6-3d3`: Same as above, subtract 3d3 from 4d6.
-- `4d6+1`: roll 4d6 add 1 to the result
+- `4d6+2d5/2`: perform arbitrary mathematical operations. The statements are turned into [Expressions](https://docs.godotengine.org/en/stable/classes/class_expression.html) so everything supported by them will work fine. Note that outputs of dice will always be `float`s.
 - `4d6d1`: roll 4d6, drop the lowest one
 - `4d6dh1`: roll 4d6, drop the highest one
 - `4d6k1`: roll 4d6, keep the highest one

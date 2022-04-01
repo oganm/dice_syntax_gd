@@ -44,34 +44,17 @@ func test_dice_mean():
 	assert_between(m_roll,4.1,4.3,'explode')
 
 
-func test_errors():
-	var roll = dice_syntax.roll('1d1d1',rng)
-	assert_true(roll.error)
-	assert_true(roll.msg.size()==1)
-	
-	roll = dice_syntax.roll('1d6',rng)
-	assert_false(roll.error)
-	assert_true(roll.msg.size()==0)
-	
-	roll = dice_syntax.roll('1d6+1d1d1',rng)
-	assert_true(roll.error)
-	assert_true(roll.msg.size()==1)
-	
-	roll = dice_syntax.roll('1d1d1+1d1r1',rng)
-	assert_true(roll.error)
-	assert_true(roll.msg.size()==2)
-	
-	roll = dice_syntax.roll("help i'm trapped in a dice factory",rng)
-	assert_true(roll.error)
-	assert_true(roll.msg.size()==1)
 
 func test_probs():
 	
 	var probs = dice_syntax.dice_probs('1d4')
-	assert_true(probs[1] == 0.25,'wrong probabilies')
+	assert_true(probs[1.0] == 0.25,'wrong probabilies')
 	
 	probs = dice_syntax.dice_probs('4d6d1')
-	assert_almost_eq(probs[3],0.000772,0.0001,"wrong probabilities")
+	assert_almost_eq(probs[3.0],0.000772,0.0001,"wrong probabilities")
+	
+	probs = dice_syntax.dice_probs('13')
+	assert_almost_eq(probs[13.0],1,0.0001, "wrong probabilities")
 
 func test_parsing():
 	var parsed = dice_syntax.dice_parser('3d6+2d6')
