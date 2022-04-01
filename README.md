@@ -22,7 +22,7 @@ var rng = RandomNumberGenerator.new()
 print(dice_syntax.roll('4d6k3',rng)) # roll 4d6, keep the highest 3
 ```
 ```
-{error:False, msg:[], result:11, rolls:[{dice:[4, 2, 5], drop:[1], error:False, msg:[], result:11}]}
+{error:False, msg:[], result:11, rolls:[{dice:[6, 4, 1], drop:[1], error:False, msg:[], result:11}]}
 ```
 
 The output is a `Dictionary` where `result` is the sum of all the dice rolled while `rolls`
@@ -37,7 +37,8 @@ var parsed_dice = dice_syntax.dice_parser('4d6k3')
 print(dice_syntax.roll_parsed(parsed_dice,rng))
 ```
 ```
-{error:False, msg:[], result:11, rolls:[{dice:[4, 2, 5], drop:[1], error:False, msg:[], result:11}]}
+
+{error:False, msg:[], result:11, rolls:[{dice:[6, 4, 1], drop:[1], error:False, msg:[], result:11}]
 ```
 
 In addition to it's own syntax, the input will be parsed into an [Expression](https://docs.godotengine.org/en/stable/classes/class_expression.html)
@@ -114,10 +115,17 @@ which is also added to the output object
 print(dice_syntax.roll("help i'm trapped in a dice factory+1d6",rng))
 ```
 ```
-{error:True, msg:[Malformed dice string: Unable to detect dice sides, Malformed dice string: Unable to detect dice sides], result:0, rolls:[{dice:[], drop:[], error:True, msg:[Malformed dice string: Unable to detect dice sides], result:0}, {dice:[], drop:[], error:True, msg:[Malformed dice string: Unable to detect dice sides], result:0}, {dice:[6], drop:[], error:False, msg:[], result:6}]}
+{error:True, msg:[Expression fails to execute], result:0, rolls:[{dice:[2], drop:[], error:False, msg:[], result:2}]}
 ```
 
-Note that the final result is set to 0 even if part of the dice was able to be rolled.
+Note that the final result will be set to 0 even if part of the dice was able to be rolled.
+
+```
+print(dice_syntax.roll("1d1r1+1d6",rng)) # first dice will return an error since all possible outcomes are rerolled.
+```
+```
+{error:True, msg:[[Invalid dice: No possible results]], result:0, rolls:[{dice:[], drop:[], error:True, msg:[Invalid dice: No possible results], result:0}, {dice:[1], drop:[], error:False, msg:[], result:1}]}
+```
 
 Probability calculations will return a `{0:1}` if the input dice contains an error
 ```

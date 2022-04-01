@@ -7,8 +7,9 @@ static func dice_parser(dice:String)->Dictionary:
 	var sm = preload('string_manip.gd')
 	var sdf = preload('single_dice_funs.gd')
 	var dh = preload('dice_helpers.gd')
-	
-	var dice_regex = '[0-9]*d[0-9]*[dksro!<>0-9lh]*'
+	var error = false
+	var msg = []
+	var dice_regex = '[0-9]*d[0-9]+[dksro!<>0-9lh]*'
 	
 	var dice_components = sm.str_extract_all(dice,dice_regex)
 	var dice_expression_compoments = sm.str_split(dice,dice_regex)
@@ -22,26 +23,43 @@ static func dice_parser(dice:String)->Dictionary:
 	var rules_array = []
 	for x in dice_components:
 		var rr = sdf.base_dice_parser(x)
+		if rr.error:
+			error = true
+			msg.append(rr.msg)
+	
 		rules_array.append(rr)
 	
 	var expression = Expression.new()
 	expression.parse(dice_expression,dice_letters)
 	
-	return {'rules_array':rules_array,'dice_expression':expression,'expression_string':dice_expression}
+	# test execution to see if it's valid
+	var test_out = []
+	for i in range(dice_letters.size()):
+		test_out.append(1.0)
+	
+	expression.execute(test_out)
+	if expression.has_execute_failed():
+		error = true
+		msg.append('Expression fails to execute')
+	
+	return {
+		'rules_array':rules_array,
+		'dice_expression':expression,
+		'expression_string':dice_expression,
+		'error':error,
+		'msg':msg}
 
 static func roll_parsed(rules:Dictionary, rng:RandomNumberGenerator)->Dictionary:
 	var sdf = preload('single_dice_funs.gd')
 	var results:Array
 	var roll_sums:Array
-	var error = false
-	var msg = []
+	var error = rules.error
+	var msg = rules.msg
+	
 	for i in range(rules.rules_array.size()):
 		var result = sdf.base_rule_roller(rules.rules_array[i],rng)
 		results.append(result)
 		roll_sums.append(result.result)
-		if rules.rules_array[i].error:
-			error = true
-		msg.append_array(rules.rules_array[i].msg)
 	
 	var sum = rules.dice_expression.execute(roll_sums)
 	
@@ -59,10 +77,8 @@ static func parsed_dice_probs(rules, explode_depth:int=1)->Dictionary:
 	var al = preload('array_logic.gd')
 	var sdf = preload('single_dice_funs.gd')
 	var final_result = {}
-	var error = false
+	var error = rules.error
 	for i in range(rules.rules_array.size()):
-		if(rules.rules_array[i].error):
-			error = true
 		var result = sdf.base_calc_rule_probs(rules.rules_array[i],explode_depth)
 		if i == 0: # if it's the first iteration populate the dictionary
 			for x in result.keys():

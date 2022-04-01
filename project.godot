@@ -9,13 +9,31 @@
 config_version=4
 
 _global_script_classes=[ {
+"base": "Node",
+"class": "character",
+"language": "GDScript",
+"path": "res://character.gd"
+}, {
 "base": "GDScript",
 "class": "dice_syntax",
 "language": "GDScript",
 "path": "res://addons/dice_syntax/dice_syntax.gd"
+}, {
+"base": "Resource",
+"class": "dice_syntax_parsed_dice",
+"language": "GDScript",
+"path": "res://addons/dice_syntax/parsed_dice.gd"
+}, {
+"base": "Resource",
+"class": "dice_syntax_rolling_rules",
+"language": "GDScript",
+"path": "res://addons/dice_syntax/rolling_rules.gd"
 } ]
 _global_script_class_icons={
-"dice_syntax": ""
+"character": "",
+"dice_syntax": "",
+"dice_syntax_parsed_dice": "",
+"dice_syntax_rolling_rules": ""
 }
 
 [application]
@@ -25,7 +43,7 @@ config/icon="res://icon.png"
 
 [editor_plugins]
 
-enabled=PoolStringArray( "res://addons/dice_syntax/plugin.cfg", "res://addons/gut/plugin.cfg", "res://addons/terminal/plugin.cfg" )
+enabled=PoolStringArray( "res://addons/dice_syntax/plugin.cfg", "res://addons/gut/plugin.cfg" )
 
 [physics]
 
