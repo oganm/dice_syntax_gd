@@ -25,7 +25,7 @@ static func dice_parser(dice:String)->Dictionary:
 		var rr = sdf.base_dice_parser(x)
 		if rr.error:
 			error = true
-			msg.append(rr.msg)
+			msg.append_array(rr.msg)
 	
 		rules_array.append(rr)
 	
