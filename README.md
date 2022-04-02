@@ -124,7 +124,7 @@ Note that the final result will be set to 0 even if part of the dice was able to
 print(dice_syntax.roll("1d1r1+1d6",rng)) # first dice will return an error since all possible outcomes are rerolled.
 ```
 ```
-{error:True, msg:[[Invalid dice: No possible results]], result:0, rolls:[{dice:[], drop:[], error:True, msg:[Invalid dice: No possible results], result:0}, {dice:[1], drop:[], error:False, msg:[], result:1}]}
+{error:True, msg:[Invalid dice: No possible results], result:0, rolls:[{dice:[], drop:[], error:True, msg:[Invalid dice: No possible results], result:0}, {dice:[1], drop:[], error:False, msg:[], result:1}]}
 ```
 
 Probability calculations will return a `{0:1}` if the input dice contains an error
