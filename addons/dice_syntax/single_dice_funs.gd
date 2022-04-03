@@ -8,29 +8,22 @@ static func base_dice_parser(dice_string:String)->Dictionary:
 	var al = preload('array_logic.gd')
 	var dh = preload('dice_helpers.gd')
 	
-	var rolling_rules: Dictionary = {'error': false, 
+	var rolling_rules: Dictionary = {
+	'error': false, 
 	'msg': [],
-	'add':0,
+	'compound':[],
+	'explode':[],
 	'reroll_once': [],
 	'reroll': [],
 	'possible_dice': [],
 	'drop_dice':0,
-	'drop_lowest':true}
+	'drop_lowest':true,
+	'dice_side':0,
+	'dice_count':0,
+	'sort':false}
 	var valid_tokens = '[dksr!]'
 	
 	dice_string = dice_string.to_lower()
-	
-	
-	# if its an integer just add a number
-	if dice_string.is_valid_int():
-		rolling_rules['add'] = dice_string.to_int()
-		rolling_rules['dice_count'] = 0
-		rolling_rules['dice_side'] = 0
-		rolling_rules['sort'] = false
-		rolling_rules['explode'] = []
-		rolling_rules['compound'] = []
-		rolling_rules['possible_dice'] =[]
-		return rolling_rules
 	
 	
 	# get the dice count or default to 1 if we just start with d.
@@ -53,7 +46,10 @@ static func base_dice_parser(dice_string:String)->Dictionary:
 	
 	var dice_side = sm.str_extract(tokens[0],'(?<=d)[0-9]+')
 	dh.dice_error(dice_side != null, "Malformed dice string: Unable to detect dice sides",rolling_rules)
-	rolling_rules['dice_side'] = dice_side.to_int()
+	if dice_side!=null:
+		rolling_rules['dice_side'] = dice_side.to_int()
+	else:
+		return rolling_rules
 	# remove dice side token to make sure it's not confused with the drop rule
 	tokens.remove_at(0)
 	
@@ -214,7 +210,7 @@ static func base_rule_roller(rolling_rules:Dictionary,rng:RandomNumberGenerator)
 			if not x in drop_copy:
 				new_dice.append(x)
 			else:
-				drop_copy.remove(drop_copy.find(x))
+				drop_copy.remove_at(drop_copy.find(x))
 		dice = new_dice
 		out['drop'] = drop
 		
@@ -223,7 +219,6 @@ static func base_rule_roller(rolling_rules:Dictionary,rng:RandomNumberGenerator)
 	out['dice'] = dice
 	out['result'] = al.sum(dice)
 	
-	out['result'] += rolling_rules.add
 	
 	return out
 
@@ -237,9 +232,6 @@ static func base_calc_rule_probs(rules:Dictionary,explode_depth:int = 3)->Dictio
 		var probs = {0:1}
 		return probs
 	
-	# add can only appear alone
-	if rules.add>0:
-		return {rules.add:1}
 	
 	var base_prob = 1.0/rules.possible_dice.size()
 	
@@ -281,6 +273,7 @@ static func base_calc_rule_probs(rules:Dictionary,explode_depth:int = 3)->Dictio
 	for i in range(rules.dice_count-1):
 		probs = dh.merge_probs_keep_dice(probs,original_probs)
 		pass
+	
 	# drop dice
 	if rules.drop_dice>0:
 		var post_drop:Dictionary
@@ -293,7 +286,7 @@ static func base_calc_rule_probs(rules:Dictionary,explode_depth:int = 3)->Dictio
 				var new_key = k.slice(0,k.size()-rules.drop_dice)
 				dh.add_to_dict(post_drop,new_key,probs[k])
 		probs = post_drop.duplicate()
-		
+
 	
 	# collapse results into single sums
 	probs = dh.collapse_probs(probs, false)

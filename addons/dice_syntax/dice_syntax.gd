@@ -3,94 +3,105 @@ class_name dice_syntax
 
 
 
-
-
-# parsing composite rolls (with +,- in the string)
 static func dice_parser(dice:String)->Dictionary:
 	var sm = preload('string_manip.gd')
 	var sdf = preload('single_dice_funs.gd')
+	var dh = preload('dice_helpers.gd')
+	var error = false
+	var msg = []
+	var dice_regex = '[0-9]*d[0-9]+[dksro!<>0-9lh]*'
 	
-	var dice_components = sm.str_split(dice,'\\+|-')
-	var string_signs = sm.str_extract_all(dice,'\\+|-')
-	var component_signs = []
-	if dice.begins_with('-'):
-		dice_components.remove_at(0)
-	elif dice.begins_with('+'):
-		dice_components.remove_at(0)
-	else:
-		component_signs.append(1)
-	
-	for i in range(string_signs.size()):
-		component_signs.append((string_signs[i] + '1').to_int())
+	var dice_components = sm.str_extract_all(dice,dice_regex)
+	var dice_expression_compoments = sm.str_split(dice,dice_regex)
+	var dice_expression = ''
+	var dice_letters = []
+	for i in range(dice_expression_compoments.size()):
+		dice_expression += dice_expression_compoments[i]
+		if i < dice_components.size():
+			dice_letters.append(dh.int_to_letter(i))
+			dice_expression += dice_letters[i]
 	var rules_array = []
-	
 	for x in dice_components:
 		var rr = sdf.base_dice_parser(x)
+		if rr.error:
+			error = true
+			msg.append_array(rr.msg)
+	
 		rules_array.append(rr)
 	
-	return {'rules_array': rules_array, 'signs':component_signs}
+	var expression = Expression.new()
+	expression.parse(dice_expression,dice_letters)
+	
+	# test execution to see if it's valid
+	var test_out = []
+	for i in range(dice_letters.size()):
+		test_out.append(1.0)
+	
+	expression.execute(test_out)
+	if expression.has_execute_failed():
+		error = true
+		msg.append('Expression fails to execute')
+	
+	return {
+		'rules_array':rules_array,
+		'dice_expression':expression,
+		'expression_string':dice_expression,
+		'error':error,
+		'msg':msg}
 
-# rolling any dice, includes parsing and rolling
-static func roll(dice:String,rng:RandomNumberGenerator)->Dictionary:
-	var rules = dice_parser(dice)
-	return roll_parsed(rules,rng)
-
-
-# roll composite rolls from parsed rules
 static func roll_parsed(rules:Dictionary, rng:RandomNumberGenerator)->Dictionary:
 	var sdf = preload('single_dice_funs.gd')
 	var results:Array
-	var error = false
-	var msg = []
+	var roll_sums:Array
+	var error = rules.error
+	var msg = rules.msg
 	
 	for i in range(rules.rules_array.size()):
 		var result = sdf.base_rule_roller(rules.rules_array[i],rng)
-		result.result *= rules.signs[i]
 		results.append(result)
-		if(rules.rules_array[i].error):
-			error = true
-		msg.append_array(rules.rules_array[i].msg)
+		roll_sums.append(result.result)
 	
-	var sum = 0
-	for x in results:
-		sum += x.result
+	var sum = rules.dice_expression.execute(roll_sums)
 	
 	if error:
 		sum = 0
 	
-	var out = {'result':sum, 'rolls':results,'error': error, 'msg': msg}
-	return out
+	return {'result':sum, 'rolls':results,'error': error, 'msg': msg}
 
-# calculate probabilities for composite rolls
-static func parsed_dice_probs(rules,explode_depth:int = 1)->Dictionary:
+static func roll(dice:String, rng:RandomNumberGenerator)->Dictionary:
+	var rules = dice_parser(dice)
+	return roll_parsed(rules,rng)
+
+static func parsed_dice_probs(rules, explode_depth:int=1)->Dictionary:
 	var dh = preload('dice_helpers.gd')
 	var al = preload('array_logic.gd')
 	var sdf = preload('single_dice_funs.gd')
-	var final_result = {0:1.0}
-	var error = false
-	
+	var final_result = {}
+	var error = rules.error
 	for i in range(rules.rules_array.size()):
-		if(rules.rules_array[i].error):
-			error = true
 		var result = sdf.base_calc_rule_probs(rules.rules_array[i],explode_depth)
-		var new_keys = al.multiply_array(result.keys(),rules.signs[i])
-		var new_values = result.values()
-		result.clear()
-		for j in range(new_keys.size()):
-			result[int(new_keys[j])] = new_values[j]
-		
-		
-		final_result = dh.merge_probs(final_result,result)
+		if i == 0: # if it's the first iteration populate the dictionary
+			for x in result.keys():
+				final_result[[x]] = result[x]
+		else:
+			final_result = dh.merge_probs_keep_dice(final_result,result,false)
 	
 	if error:
 		return {0:1.0}
 	
-	return final_result
+	var processed_results = {}
+	for x in final_result.keys():
+		var new_key = rules.dice_expression.execute(x)
+		dh.add_to_dict(processed_results,new_key,final_result[x])
+	
+	if final_result.size()==0:
+		processed_results[float(rules.dice_expression.execute())] = 1
+	
+	return processed_results
 
-# calculate probabilties of any roll, includes parsing and calculating
-static func dice_probs(dice:String,explode_depth:int=3)->Dictionary:
+static func dice_probs(dice:String,explode_depth:int=1)->Dictionary:
 	var rules = dice_parser(dice)
-	return parsed_dice_probs(rules, explode_depth)
+	return parsed_dice_probs(rules,explode_depth)
 
 
 static func expected_value(probs:Dictionary)->float:
