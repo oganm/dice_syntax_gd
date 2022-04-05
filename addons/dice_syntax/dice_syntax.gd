@@ -38,7 +38,7 @@ static func dice_parser(dice:String)->Dictionary:
 		test_out.append(1.0)
 	
 	expression.execute(test_out)
-	if expression.has_execute_failed():
+	if expression.has_execute_failed() or expression.get_error_text() !='':
 		error = true
 		msg.append('Expression fails to execute')
 	
