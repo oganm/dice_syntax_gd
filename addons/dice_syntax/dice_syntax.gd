@@ -110,6 +110,12 @@ static func expected_value(probs:Dictionary)->float:
 		out += probs[k]*float(k)
 	return(out)
 
+static func standard_deviation(probs:Dictionary)->float:
+	var out = 0
+	var mean = expected_value(probs)
+	for k in probs.keys():
+		out += pow(float(k)-mean,2)*probs[k]
+	return pow(out,0.5)
 
 static func roll_from_probs(probs:Dictionary,rng:RandomNumberGenerator,n=1)->Array:
 	var al = preload('array_logic.gd')
