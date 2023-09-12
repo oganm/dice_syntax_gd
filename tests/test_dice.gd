@@ -1,4 +1,4 @@
-extends "res://addons/gut/test.gd"
+extends GutTest
 
 var rng = RandomNumberGenerator.new()
 
@@ -42,7 +42,10 @@ func test_dice_mean():
 
 
 func test_probs():
-	var probs = dice_syntax.dice_probs('1d4')
+	var probs:Dictionary = dice_syntax.dice_probs('1d4')
 	assert_true(probs[1.0] == 0.25,'wrong probabilies')
 	
-	probs = dice_syntax.dice_probs('4d6d1')
+	probs = dice_syntax.dice_probs('1d2')
+	
+	assert_true(dice_syntax.expected_value(probs) == 1.5)
+	assert_true(dice_syntax.standard_deviation(probs) == 0.5)
