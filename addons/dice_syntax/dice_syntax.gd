@@ -87,7 +87,7 @@ static func parsed_dice_probs(rules, explode_depth:int=1)->Dictionary:
 			final_result = dh.merge_probs_keep_dice(final_result,result,false)
 	
 	if error:
-		return {0:1.0}
+		return {0.0:1.0}
 	
 	var processed_results = {}
 	for x in final_result.keys():
