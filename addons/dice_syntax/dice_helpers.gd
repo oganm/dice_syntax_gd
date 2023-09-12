@@ -109,7 +109,7 @@ static func range_determine(token:String,dice_side:int, default:int = 1)->Array:
 	var number = sm.str_extract(token, '[0-9]*$')
 	# dice_error(!(sm.str_detect(token,'<|>') and number ==''),'Malformed dice string: Using  "<" or ">" identifiers requires an integer',rolling_rules)
 	# dice_error(!(sm.str_detect(token,'<') and sm.str_detect(token,'>')),'Malformed dice string: A range clause can only have one of "<" or ">"',rolling_rules)
-	if !sm.str_detect('<|>',token) and number == '':
+	if !sm.str_detect(token,'<|>') and number == '':
 		out.append(default)
 	elif number != '' and !sm.str_detect(token, '<|>'):
 		out.append(number.to_int())
