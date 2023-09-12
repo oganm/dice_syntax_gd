@@ -8,25 +8,15 @@
 
 config_version=5
 
-_global_script_classes=[{
-"base": "GDScript",
-"class": &"dice_syntax",
-"language": &"GDScript",
-"path": "res://addons/dice_syntax/dice_syntax.gd"
-}]
-_global_script_class_icons={
-"dice_syntax": ""
-}
-
 [application]
 
 config/name="dice_syntax_gd"
+config/features=PackedStringArray("4.1")
 config/icon="res://icon.png"
-config/features=PackedStringArray("4.0")
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/dice_syntax/plugin.cfg")
+enabled=PackedStringArray("res://addons/dice_syntax/plugin.cfg", "res://addons/gut/plugin.cfg")
 
 [physics]
 

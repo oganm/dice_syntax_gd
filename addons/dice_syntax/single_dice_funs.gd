@@ -201,7 +201,7 @@ static func base_rule_roller(rolling_rules:Dictionary,rng:RandomNumberGenerator)
 		ordered_dice.sort()
 		var drop = []
 		if !rolling_rules.drop_lowest:
-			ordered_dice.invert()
+			ordered_dice.reverse()
 		for i in range(0,rolling_rules.drop_dice):
 			drop.append(ordered_dice[i])
 		var new_dice = []

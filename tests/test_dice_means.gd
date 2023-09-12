@@ -43,6 +43,6 @@ func test_dice_mean():
 
 func test_probs():
 	var probs = dice_syntax.dice_probs('1d4')
-	assert_true(probs[1] == 0.25,'wrong probabilies')
+	assert_true(probs[1.0] == 0.25,'wrong probabilies')
 	
 	probs = dice_syntax.dice_probs('4d6d1')
