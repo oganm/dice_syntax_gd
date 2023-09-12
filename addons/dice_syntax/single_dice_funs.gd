@@ -81,7 +81,7 @@ static func base_dice_parser(dice_string:String)->Dictionary:
 	var reroll_rules = sm.strs_detect(tokens,'r(?!o)')
 	var reroll:Array = []
 	for i in reroll_rules:
-		reroll.append_array(dh.range_determine(tokens[i], rolling_rules['dice_side']))
+		reroll.append_array(dh.range_determine(tokens[i], rolling_rules['dice_side'],rolling_rules))
 	var dicePossibilities = range(1,rolling_rules['dice_side']+1)
 	# dice_error(!al.all(al.array_in_array(dicePossibilities,reroll)),'Malformed dice string: rerolling all results',rolling_rules)
 	rolling_rules['reroll'] = reroll
@@ -94,9 +94,9 @@ static func base_dice_parser(dice_string:String)->Dictionary:
 	reroll_rules = sm.strs_detect(tokens,'ro')
 	var reroll_once:Array = []
 	for i in reroll_rules:
-		var to_reroll = dh.range_determine(tokens[i], rolling_rules['dice_side'])
+		var to_reroll = dh.range_determine(tokens[i], rolling_rules['dice_side'],rolling_rules)
 		dh.dice_error(al.which_in_array(to_reroll,reroll_once).size()==0,"Malformed dice string: can't reroll the same number once more than once.",rolling_rules)
-		reroll_once.append_array(dh.range_determine(tokens[i], rolling_rules['dice_side']))
+		reroll_once.append_array(to_reroll)
 	rolling_rules['reroll_once'] = reroll_once
 	
 	reroll_rules.invert()
@@ -114,10 +114,10 @@ static func base_dice_parser(dice_string:String)->Dictionary:
 			if tokens[i] == '!' and i+1 in explode_rules:
 				compound_flag = true
 			elif not compound_flag:
-				explode.append_array(dh.range_determine(tokens[i], rolling_rules['dice_side'],rolling_rules['dice_side']))
+				explode.append_array(dh.range_determine(tokens[i], rolling_rules['dice_side'],rolling_rules,rolling_rules['dice_side']))
 			elif compound_flag:
 				compound_flag = false
-				compound.append_array(dh.range_determine(tokens[i], rolling_rules['dice_side'],rolling_rules['dice_side']))
+				compound.append_array(dh.range_determine(tokens[i], rolling_rules['dice_side'],rolling_rules,rolling_rules['dice_side']))
 	rolling_rules['explode'] = explode
 	rolling_rules['compound'] = compound
 	explode_rules.invert()
