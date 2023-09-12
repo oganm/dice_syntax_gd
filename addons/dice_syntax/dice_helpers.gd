@@ -103,12 +103,12 @@ static func dice_error(condition:bool,message:String,rolling_rules:Dictionary):
 		rolling_rules['msg'].append(message)
 
 
-static func range_determine(token:String,dice_side:int, default:int = 1)->Array:
+static func range_determine(token:String,dice_side:int,rolling_rules:Dictionary={} ,default:int = 1)->Array:
 	var sm = preload('string_manip.gd')
 	var out:Array = []
 	var number = sm.str_extract(token, '[0-9]*$')
-	# dice_error(!(sm.str_detect(token,'<|>') and number ==''),'Malformed dice string: Using  "<" or ">" identifiers requires an integer',rolling_rules)
-	# dice_error(!(sm.str_detect(token,'<') and sm.str_detect(token,'>')),'Malformed dice string: A range clause can only have one of "<" or ">"',rolling_rules)
+	dice_error(!(sm.str_detect(token,'<|>') and number ==''),'Malformed dice string: Using  "<" or ">" identifiers requires an integer',rolling_rules)
+	dice_error(!(sm.str_detect(token,'<') and sm.str_detect(token,'>')),'Malformed dice string: A range clause can only have one of "<" or ">"',rolling_rules)
 	if !sm.str_detect(token,'<|>') and number == '':
 		out.append(default)
 	elif number != '' and !sm.str_detect(token, '<|>'):
