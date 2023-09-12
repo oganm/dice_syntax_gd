@@ -4,6 +4,10 @@ extends GDScript
 static func str_extract(string:String,pattern:String):
 	var regex = RegEx.new()
 	regex.compile(pattern)
+	return str_extract_rg(string,regex)
+
+
+static func str_extract_rg(string:String,regex:RegEx):
 	var result:RegExMatch = regex.search(string)
 	if result == null:
 		return null
@@ -12,22 +16,35 @@ static func str_extract(string:String,pattern:String):
 
 static func str_extract_all(string:String,pattern:String)->Array:
 	var regex = RegEx.new()
-	var out:Array
 	regex.compile(pattern)
+	return str_extract_all_rg(string,regex)
+
+
+static func str_extract_all_rg(string:String,regex:RegEx)->Array:
+	var out:Array
 	for x in regex.search_all(string):
 		out.append(x.get_string())
 	return(out)
 
+
 static func str_detect(string:String, pattern:String)-> bool:
 	var regex = RegEx.new()
-	var out:bool
 	regex.compile(pattern)
+	return str_detect_rg(string,regex)
+
+
+static func str_detect_rg(string:String, regex:RegEx)-> bool:
+	var out:bool
 	var result:RegExMatch = regex.search(string)
 	return result != null
+
 
 static func str_split(string:String, pattern:String)->Array:
 	var regex = RegEx.new()
 	regex.compile(pattern) # Negated whitespace character class.
+	return str_split_rg(string,regex)
+
+static func str_split_rg(string:String, regex:RegEx)->Array:
 	var out = []
 	var start = 0
 	var end = 0
@@ -41,11 +58,17 @@ static func str_split(string:String, pattern:String)->Array:
 	
 	return out
 
+
 # vectorized over an array of strings to return indexes of matching
 static func strs_detect(strings:Array,pattern:String)->Array:
+	var regex = RegEx.new()
+	regex.compile(pattern)
+	return strs_detect_rg(strings,regex)
+
+static func strs_detect_rg(strings:Array,regex:RegEx)->Array:
 	var out:Array
 	for i in range(strings.size()):
-		if str_detect(strings[i],pattern):
+		if str_detect_rg(strings[i],regex):
 			out.append(i)
 	
 	return out
