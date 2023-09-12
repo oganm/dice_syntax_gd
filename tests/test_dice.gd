@@ -37,6 +37,9 @@ func test_dice_mean():
 	m_roll = mean_tester('1d6r<5')
 	assert_true(m_roll==6.0,'reroll range')
 	
+	m_roll = mean_tester('1d6r>2')
+	assert_true(m_roll==1.0,'reroll range')
+	
 	m_roll = mean_tester('1d6ro1')
 	assert_between(m_roll,3.9,4.1,'reroll once')
 
