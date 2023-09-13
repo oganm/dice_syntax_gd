@@ -49,7 +49,7 @@ static func dice_parser(dice:String)->Dictionary:
 		'error':error,
 		'msg':msg}
 
-static func roll_parsed(rules:Dictionary, rng:RandomNumberGenerator)->Dictionary:
+static func roll_parsed(rules:Dictionary, rng:RandomNumberGenerator = RandomNumberGenerator.new())->Dictionary:
 	var sdf = preload('single_dice_funs.gd')
 	var results:Array
 	var roll_sums:Array
@@ -68,7 +68,7 @@ static func roll_parsed(rules:Dictionary, rng:RandomNumberGenerator)->Dictionary
 	
 	return {'result':sum, 'rolls':results,'error': error, 'msg': msg}
 
-static func roll(dice:String, rng:RandomNumberGenerator)->Dictionary:
+static func roll(dice:String, rng:RandomNumberGenerator = RandomNumberGenerator.new())->Dictionary:
 	var rules = dice_parser(dice)
 	return roll_parsed(rules,rng)
 
@@ -117,7 +117,7 @@ static func standard_deviation(probs:Dictionary)->float:
 		out += pow(float(k)-mean,2)*probs[k]
 	return pow(out,0.5)
 
-static func roll_from_probs(probs:Dictionary,rng:RandomNumberGenerator,n=1)->Array:
+static func roll_from_probs(probs:Dictionary,rng:RandomNumberGenerator = RandomNumberGenerator.new(),n=1)->Array:
 	var al = preload('array_logic.gd')
 	return al.sample_weights(probs.keys(),probs.values(),n,rng)
 	

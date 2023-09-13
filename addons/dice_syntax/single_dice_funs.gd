@@ -140,7 +140,7 @@ static func base_dice_parser(dice_string:String)->Dictionary:
 	return rolling_rules
 
 # rolling a single roll from a parsed rules
-static func base_rule_roller(rolling_rules:Dictionary,rng:RandomNumberGenerator)->Dictionary:
+static func base_rule_roller(rolling_rules:Dictionary,rng:RandomNumberGenerator = RandomNumberGenerator.new())->Dictionary:
 	var al = preload('array_logic.gd')
 	var out:Dictionary = {'error': false,
 	'msg': [],
