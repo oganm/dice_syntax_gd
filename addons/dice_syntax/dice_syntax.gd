@@ -3,16 +3,18 @@ class_name dice_syntax
 
 
 
-static func dice_parser(dice:String)->Dictionary:
+
+
+static func dice_parser(dice:String,regex:RegEx = RegEx.new())->Dictionary:
 	var sm = preload('string_manip.gd')
 	var sdf = preload('single_dice_funs.gd')
 	var dh = preload('dice_helpers.gd')
 	var error = false
 	var msg = []
 	var dice_regex = '[0-9]*d[0-9]+[dksro!<>0-9lh]*'
-	
-	var dice_components = sm.str_extract_all(dice,dice_regex)
-	var dice_expression_compoments = sm.str_split(dice,dice_regex)
+	regex.compile(dice_regex)
+	var dice_components = sm.str_extract_all_rg(dice,regex)
+	var dice_expression_compoments = sm.str_split_rg(dice,regex)
 	var dice_expression = ''
 	var dice_letters = []
 	for i in range(dice_expression_compoments.size()):
@@ -22,7 +24,7 @@ static func dice_parser(dice:String)->Dictionary:
 			dice_expression += dice_letters[i]
 	var rules_array = []
 	for x in dice_components:
-		var rr = sdf.base_dice_parser(x)
+		var rr = sdf.base_dice_parser(x,regex)
 		if rr.error:
 			error = true
 			msg.append_array(rr.msg)
