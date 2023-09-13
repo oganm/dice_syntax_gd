@@ -229,7 +229,7 @@ static func base_calc_rule_probs(rules:Dictionary,explode_depth:int = 3)->Dictio
 	var dh = preload('dice_helpers.gd')
 	
 	if rules.error:
-		var probs = {0:1}
+		var probs = {0.0:1.0}
 		return probs
 	
 	
