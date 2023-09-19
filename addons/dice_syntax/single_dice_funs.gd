@@ -44,7 +44,7 @@ static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dict
 	
 	regex.compile(valid_tokens + '.*?((?=' + valid_tokens + ')|$)')
 	var tokens = sm.str_extract_all_rg(dice_string,regex)
-	print(tokens)
+	# print(tokens)
 	regex.compile('(?<=d)[0-9]+$')
 	var dice_side = sm.str_extract_rg(tokens[0],regex)
 	dh.dice_error(dice_side != null, "Malformed dice string: Unable to detect dice sides",rolling_rules)
