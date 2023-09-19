@@ -138,7 +138,7 @@ static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dict
 	
 	used_tokens.sort()
 	used_tokens.reverse()
-	print(used_tokens)
+	#print(used_tokens)
 	for i in used_tokens:
 		if i>= tokens.size():
 			dh.dice_error(tokens.size()==0, 'Malformed dice string: Ambigious tokens',rolling_rules)
