@@ -13,7 +13,14 @@ func mean_tester(dice:String, n = 1000):
 	rolls = rolls/n
 	return rolls
 
-
+func test_parsing():
+	var parsed = dice_syntax.dice_parser('6d5')
+	assert_true(parsed.rules_array[0].dice_side == 5)
+	assert_true(parsed.rules_array[0].dice_count == 6)
+	assert_true(parsed.error == false)
+	parsed = dice_syntax.dice_parser('6d5+5dd')
+	assert_true(parsed.error)
+	assert_true(parsed.msg[0] == 'Invalid numeric notation')
 
 func test_dice_mean():
 	var roll = dice_syntax.roll('100d10',rng).result
