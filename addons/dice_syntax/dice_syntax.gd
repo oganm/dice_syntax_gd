@@ -12,6 +12,8 @@ static func dice_parser(dice:String,regex:RegEx = RegEx.new())->Dictionary:
 	var error = false
 	var msg = []
 	var dice_regex = '[0-9]*d[0-9]+[dksro!<>0-9lh]*'
+	
+	
 	regex.compile(dice_regex)
 	var dice_components = sm.str_extract_all_rg(dice,regex)
 	var dice_expression_compoments = sm.str_split_rg(dice,regex)
@@ -43,6 +45,15 @@ static func dice_parser(dice:String,regex:RegEx = RegEx.new())->Dictionary:
 	if expression.has_execute_failed() or expression.get_error_text()!='':
 		error = true
 		msg.append('Expression fails to execute')
+	
+	
+	var bad_regex = "(^|[+\\-*/% ])[0-9]+[a-zA-Z]"
+	regex.compile(bad_regex)
+	
+	if sm.str_detect_rg(dice_expression,regex):
+		error = true
+		msg.append('Invalid numeric notation')
+	
 	
 	return {
 		'rules_array':rules_array,
