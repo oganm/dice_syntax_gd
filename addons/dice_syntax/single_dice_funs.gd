@@ -23,8 +23,9 @@ static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dict
 	'dice_count':0,
 	'sort':false}
 	var valid_tokens = '[dksr!]'
+	# var valid_tokens = '[dksr!<=>]'
 	dice_string = dice_string.to_lower()
-	
+	var used_tokens:PackedInt32Array
 	
 	# get the dice count or default to 1 if we just start with d.
 	regex.compile('^[0-9]*?(?=d)')
@@ -43,7 +44,7 @@ static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dict
 	
 	regex.compile(valid_tokens + '.*?((?=' + valid_tokens + ')|$)')
 	var tokens = sm.str_extract_all_rg(dice_string,regex)
-	
+	print(tokens)
 	regex.compile('(?<=d)[0-9]+$')
 	var dice_side = sm.str_extract_rg(tokens[0],regex)
 	dh.dice_error(dice_side != null, "Malformed dice string: Unable to detect dice sides",rolling_rules)
@@ -58,7 +59,9 @@ static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dict
 	var sort_rule = tokens.find('s')
 	rolling_rules['sort'] = sort_rule != -1
 	if sort_rule != -1:
-		tokens.remove_at(sort_rule)
+		used_tokens.append(sort_rule)
+		# tokens.remove_at(sort_rule)
+
 	
 	# check for drop rules, there can only be one 
 	regex.compile('^(d|k)(h|l)?[0-9]+$')
@@ -82,8 +85,7 @@ static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dict
 		regex.compile('kl')
 		var dl2 = sm.str_detect_rg(drop_rule,regex)
 		rolling_rules['drop_lowest'] = !(dl1 or dl2)
-		tokens.remove_at(drop_rules[0])
-	
+		used_tokens.append(drop_rules[0])
 	# reroll rules
 	regex.compile('r(?!o)')
 	var reroll_rules = sm.strs_detect_rg(tokens,regex)
@@ -96,7 +98,7 @@ static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dict
 	# remove reroll rules
 	reroll_rules.reverse()
 	for i in reroll_rules:
-		tokens.remove_at(i)
+		used_tokens.append(i)
 	
 	# reroll once
 	regex.compile('ro')
@@ -110,7 +112,7 @@ static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dict
 	
 	reroll_rules.reverse()
 	for i in reroll_rules:
-		tokens.remove_at(i)
+		used_tokens.append(i)
 	
 	
 	# new explode rules
@@ -132,8 +134,16 @@ static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dict
 	rolling_rules['compound'] = compound
 	explode_rules.reverse()
 	for i in explode_rules:
-		tokens.remove_at(i)
+		used_tokens.append(i)
 	
+	used_tokens.sort()
+	used_tokens.reverse()
+	print(used_tokens)
+	for i in used_tokens:
+		if i>= tokens.size():
+			dh.dice_error(tokens.size()==0, 'Malformed dice string: Ambigious tokens',rolling_rules)
+		else:
+			tokens.remove_at(i)
 	dh.dice_error(tokens.size()==0, 'Malformed dice string: Unprocessed tokens',rolling_rules)
 	var possible_dice = range(1,rolling_rules.dice_side+1)
 	possible_dice = al.array_subset(possible_dice,al.which(al.array_not(al.array_in_array(possible_dice, rolling_rules.reroll))))
