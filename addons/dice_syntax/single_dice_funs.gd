@@ -4,6 +4,109 @@ extends GDScript
 
 # basic dice parser for single rolls
 
+static func base_dice_parser2(dice_string:String,regex:RegEx = RegEx.new())->Dictionary:
+	var sm = preload('string_manip.gd')
+	var al = preload('array_logic.gd')
+	var dh = preload('dice_helpers.gd')
+	var rolling_rules: Dictionary = {
+	'error': false, 
+	'msg': [],
+	'compound':[],
+	'explode':[],
+	'reroll_once': [],
+	'reroll': [],
+	'possible_dice': [],
+	'drop_dice':0,
+	'drop_lowest':true,
+	'drop_keep_specific': [],
+	'drop_specific': true,
+	'dice_side':0,
+	'dice_count':0,
+	'sort':false}
+	var valid_tokens = '[dksr!<=>hl]'
+	dice_string = dice_string.to_lower()
+	var used_tokens:PackedInt32Array
+	
+	# get the dice count or default to 1 if we just start with d.
+	regex.compile('^[0-9]*?(?=d)')
+	var result = sm.str_extract_rg(dice_string,regex)
+	dh.dice_error(result!=null,'Malformed dice string',rolling_rules)
+	if result == '':
+		rolling_rules['dice_count'] = 1
+	elif result == null:
+		return rolling_rules
+	elif result.is_valid_int():
+		rolling_rules['dice_count'] = result.to_int()
+	
+	# tokenize the rest of the rolling rules. a token character, followed by the
+	# next valid token character or end of string. while processing, remove
+	# all processed tokens and check for anything leftower at the end
+	regex.compile(valid_tokens + '.*?((?=' + valid_tokens + ')|$)')
+	var tokens = sm.str_extract_all_rg(dice_string,regex)
+	# print(tokens)
+	regex.compile('(?<=d)[0-9]+$')
+	var dice_side = sm.str_extract_rg(tokens[0],regex)
+	dh.dice_error(dice_side != null, "Malformed dice string: Unable to detect dice sides",rolling_rules)
+	if dice_side!=null:
+		rolling_rules['dice_side'] = dice_side.to_int()
+	else:
+		return rolling_rules
+	# remove dice side token to make sure it's not confused with the drop rule
+	tokens.remove_at(0)
+	print(tokens)
+	# check for sort rule, if s exists, sort the results
+	# don't think this is useful. consider removing
+	var sort_rule = tokens.find('s')
+	rolling_rules['sort'] = sort_rule != -1
+	if sort_rule != -1:
+		used_tokens.append(sort_rule)
+	# tokens.remove_at(sort_rule)
+	
+	# check for drop modifiers
+	regex.compile('^(h|l)[0-9]+$')
+	var drop_modifiers:Array =  sm.strs_detect_rg(tokens,regex)
+	print(drop_modifiers)
+	# check for range specifications
+	regex.compile("^[<=>][0-9]+$")
+	var ranges =  sm.strs_detect_rg(tokens,regex)
+	print(ranges)
+	# check for drop rules
+	regex.compile('^(d|k)[0-9]*$')
+	var drop_rules:Array = sm.strs_detect_rg(tokens,regex)
+	print(drop_rules)
+		
+	for i in drop_rules:
+		regex.compile('[0-9]+$')
+		
+		# look for the drop count in the current token
+		var drop_count = sm.str_extract_rg(tokens[i], regex)
+		var drop_rule:String = tokens[i]
+		# if drop count isn't found
+		if drop_count == null and i+1 in drop_modifiers:
+			# next token is a drop modifier, it must come with a drop count
+			dh.dice_error(rolling_rules['drop_dice'] != 0, "Malformed dice string: Can't include more than one drop count",rolling_rules)
+			drop_count = sm.str_extract_rg(tokens[i+1],regex)
+			drop_rule = tokens[i] + tokens[i+1]
+			used_tokens.append(i+1)
+		elif drop_count == null and i+1 in ranges:
+			# next token is a range. drop specific results
+			var drop_range = dh.range_determine(tokens[i+1],rolling_rules['dice_side'],regex,rolling_rules)
+			match drop_rule.substr(0,1):
+				"d": 
+					dh.dice_error(rolling_rules['drop_specific'],"Malformed dice string: Can't specify both dropping and keeping specific dice",rolling_rules)
+					rolling_rules['drop_specific'] = true
+					pass
+				'k':
+					dh.dice_error(!rolling_rules['drop_specific'] and rolling_rules['drop_keep_specific'].size()>0,"Malformed dice string: Can't specify both dropping and keeping specific dice",rolling_rules)
+					rolling_rules['drop_specific'] = false
+					pass
+			rolling_rules['drop_keep_specific'].append_array(drop_range)
+		
+		
+	
+	
+	return rolling_rules
+
 static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dictionary:
 	var sm = preload('string_manip.gd')
 	var al = preload('array_logic.gd')
@@ -22,8 +125,8 @@ static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dict
 	'dice_side':0,
 	'dice_count':0,
 	'sort':false}
-	var valid_tokens = '[dksr!]'
-	# var valid_tokens = '[dksr!<=>]'
+	# var valid_tokens = '[dksr!]'
+	var valid_tokens = '[dksr!<=>hl]'
 	dice_string = dice_string.to_lower()
 	var used_tokens:PackedInt32Array
 	
