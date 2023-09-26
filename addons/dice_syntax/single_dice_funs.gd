@@ -87,7 +87,7 @@ static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dict
 					rolling_rules['drop_specific'] = true
 					pass
 				'k':
-					dh.dice_error(!rolling_rules['drop_specific'] and rolling_rules['drop_keep_specific'].size()>0,"Malformed dice string: Can't specify both dropping and keeping specific dice",rolling_rules)
+					dh.dice_error(!rolling_rules['drop_specific'] or rolling_rules['drop_keep_specific'].size()==0,"Malformed dice string: Can't specify both dropping and keeping specific dice",rolling_rules)
 					rolling_rules['drop_specific'] = false
 					pass
 			rolling_rules['drop_keep_specific'].append_array(drop_range)
