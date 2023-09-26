@@ -103,22 +103,19 @@ static func dice_error(condition:bool,message:String,rolling_rules:Dictionary):
 		rolling_rules['msg'].append(message)
 
 
-static func range_determine(token:String,dice_side:int,regex:RegEx = RegEx.new(),rolling_rules:Dictionary={} ,default:int = 1)->Array:
+static func range_determine(token:String,dice_side:int,regex:RegEx = RegEx.new(),rolling_rules:Dictionary={} ,default:int = 1)-> PackedInt64Array:
 	var sm = preload('string_manip.gd')
-	var out:Array = []
-	regex.compile('[0-9]*$')
-	var number = sm.str_extract_rg(token, regex)
-	regex.compile('<')
-	dice_error(!(sm.str_detect_rg(token,regex) and regex.compile('>') == OK and sm.str_detect_rg(token,regex)),'Malformed dice string: A range clause can only have one of "<" or ">"',rolling_rules)
-	regex.compile('<|>')
-	dice_error(!(sm.str_detect_rg(token,regex) and number ==''),'Malformed dice string: Using  "<" or ">" identifiers requires an integer',rolling_rules)
-	if !sm.str_detect_rg(token,regex) and number == '':
+	var out:PackedInt64Array = []
+	var number = sm.str_extract(token,'[0-9]*$', regex)
+	dice_error(!(sm.str_detect(token,'<',regex) and sm.str_detect(token,">",regex)),'Malformed dice string: A range clause can only have one of "<" or ">"',rolling_rules)
+	dice_error(!(sm.str_detect(token,'<|>|=',regex) and number ==''),'Malformed dice string: Using  "<", ">" or "=" operators requires an integer',rolling_rules)
+	if !sm.str_detect(token,"<|>",regex) and number == '':
 		out.append(default)
 	elif number != '' and !sm.str_detect_rg(token, regex):
 		out.append(number.to_int())
-	elif regex.compile('<') == OK and sm.str_detect_rg(token, regex) and number != '':
+	elif sm.str_detect(token,"<" ,regex) and number != '':
 		out.append_array(range(1,number.to_int()+1))
-	elif regex.compile('>') == OK and sm.str_detect_rg(token, regex) and number != '':
+	elif sm.str_detect(token,">", regex) and number != '':
 		out.append_array(range(number.to_int(),dice_side+1))
 	
 	return out

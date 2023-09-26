@@ -11,7 +11,7 @@ static func dice_parser(dice:String,regex:RegEx = RegEx.new())->Dictionary:
 	var dh = preload('dice_helpers.gd')
 	var error = false
 	var msg = []
-	var dice_regex = '[0-9]*d[0-9]+[dksro!<>0-9lh]*'
+	var dice_regex = '[0-9]*d[0-9]+[dksro!<=>0-9lh]*'
 	
 	
 	regex.compile(dice_regex)
@@ -112,8 +112,8 @@ static func parsed_dice_probs(rules, explode_depth:int=1)->Dictionary:
 	
 	return processed_results
 
-static func dice_probs(dice:String,explode_depth:int=1)->Dictionary:
-	var rules = dice_parser(dice)
+static func dice_probs(dice:String,explode_depth:int=1,regex = RegEx.new())->Dictionary:
+	var rules = dice_parser(dice,regex)
 	return parsed_dice_probs(rules,explode_depth)
 
 

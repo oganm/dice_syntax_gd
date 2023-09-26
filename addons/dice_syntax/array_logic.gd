@@ -160,6 +160,17 @@ static func sample_weights(array:Array, weights: Array, n:int, rng:RandomNumberG
 	
 	return out
 
+static func table(array:Array) -> Dictionary:
+	var out:Dictionary
+	
+	for x in array:
+		if x in out.keys():
+			out[x] = out[x]+1
+		else:
+			out[x] = 1
+	
+	return out
+
 static func tests():
 	print('testing logic functions')
 	var true_true = [true,true]
