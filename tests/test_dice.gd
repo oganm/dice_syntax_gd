@@ -60,7 +60,10 @@ func test_dice_mean():
 	assert_between(m_roll,0.9,1.1,'drop specific')
 	
 	m_roll = mean_tester("1d2")
-	assert_between(m_roll,1.4,1.6,'drop specific')
+	assert_between(m_roll,1.4,1.6,'regular')
+	
+	m_roll = mean_tester("1d2k=1")
+	assert_between(m_roll,0.4,0.6,'keep_specific')
 
 
 func test_probs():
@@ -74,3 +77,6 @@ func test_probs():
 	
 	probs = dice_syntax.dice_probs('1d2d=1')
 	assert_true(dice_syntax.expected_value(probs) == 1)
+	
+	probs = dice_syntax.dice_probs('1d2k=1')
+	assert_true(dice_syntax.expected_value(probs) == 0.5)
