@@ -157,7 +157,8 @@ print(dice_syntax.dice_probs("help i'm trapped in a dice factory+1d6"))
 ## Breaking changes 2.2.2 to 3.0
 
 - The syntax is checked more rigidly in this version, preventing inclusion of meaningless
-symbols within dice strings.
+symbols within dice strings. Nothing should break if inteded functionality was being
+used.
 - The parser checks for using invalid numeric notations normally accepted by godot
 `Expressions`. A meaningless string like "5random_letters" no longer resolved to 5
 
