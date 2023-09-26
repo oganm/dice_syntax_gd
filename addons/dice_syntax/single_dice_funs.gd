@@ -195,8 +195,9 @@ static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dict
 	var possible_dice = range(1,rolling_rules.dice_side+1)
 	possible_dice = al.array_subset(possible_dice,al.which(al.array_not(al.array_in_array(possible_dice, rolling_rules.reroll))))
 	dh.dice_error(possible_dice.size()>0,"Invalid dice: No possible results",rolling_rules)
-	dh.dice_error(not (al.all(al.array_in_array(possible_dice,rolling_rules.explode)) and rolling_rules.explode.size()>0),"Invalid dice: can't explode every result",rolling_rules)
-	dh.dice_error(not (al.all(al.array_in_array(possible_dice,rolling_rules.compound)) and rolling_rules.compound.size()>0),"Invalid dice: can't compound every result",rolling_rules)
+	
+	dh.dice_error(not possible_dice.all(func(x):return x in rolling_rules.explode),"Invalid dice: can't explode every result",rolling_rules)
+	dh.dice_error(not possible_dice.all(func(x):return x in rolling_rules.compound),"Invalid dice: can't compound every result",rolling_rules)
 	dh.dice_error(al.which_in_array(rolling_rules.explode,rolling_rules.compound).size()==0,"Invalid dice: Can't explode what you compound.",rolling_rules)
 	dh.dice_error(rolling_rules.drop_dice<rolling_rules.dice_count,'Invalid dice: cannot drop all the dice you have',rolling_rules)
 	rolling_rules['possible_dice'] = possible_dice

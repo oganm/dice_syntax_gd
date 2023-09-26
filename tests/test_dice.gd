@@ -21,6 +21,12 @@ func test_parsing():
 	parsed = dice_syntax.dice_parser('6d5+5dd')
 	assert_true(parsed.error)
 	assert_true(parsed.msg[0] == 'Invalid numeric notation')
+	parsed = dice_syntax.dice_parser('4d4!<4')
+	assert_true(parsed.msg[0] == "Invalid dice: can't explode every result")
+	
+	parsed = dice_syntax.dice_parser('1d4d=1k=1')
+	assert_true(parsed.msg[0] == "Malformed dice string: Can't specify both dropping and keeping specific dice")
+	
 
 func test_dice_mean():
 	var roll = dice_syntax.roll('100d10',rng).result
