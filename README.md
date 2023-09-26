@@ -143,6 +143,9 @@ print(dice_syntax.dice_probs("help i'm trapped in a dice factory+1d6"))
 - `4d6dh1`: roll 4d6, drop the highest one
 - `4d6k1`: roll 4d6, keep the highest one
 - `4d6kl1:` roll 4d6, keep the lowest one
+- `4d6d=1:` roll 4d6s drop all 1s
+- `4d6k>5:` roll 4d6s keep only 5s and 6s
+- `4d6d<2:` roll 4d6s drop all 1s and 2s
 - `4d6r1`: roll 4d6 reroll all 1s (1 is not a possible result)
 - `4d6ro1`: roll 4d6 reroll 1s once
 - `4d6r<2`: roll 4d6 reroll all 1s and 2s (not possible results)
@@ -150,6 +153,13 @@ print(dice_syntax.dice_probs("help i'm trapped in a dice factory+1d6"))
 - `4d6!`: roll 4d6 explode 6s (for every six, roll again until a non six is rolled, add them to the rolls. The output will have variable number of dice)
 - `4d6!!`: roll 4d6 compound 6s (for every six, roll again until a non six is rolled, combined them into a single roll in the output. The output will have 4 dice)
 - `4d6!>5`: roll 4d6 explode 5s and 6s
+
+## Breaking changes 2.2.2 to 3.0
+
+- The syntax is checked more rigidly in this version, preventing inclusion of meaningless
+symbols within dice strings.
+- The parser checks for using invalid numeric notations normally accepted by godot
+`Expressions`. A meaningless string like "5random_letters" no longer resolved to 5
 
 ## Breaking changes 1.1 to 2.0
 
