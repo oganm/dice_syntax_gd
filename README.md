@@ -162,6 +162,9 @@ used.
 - The parser checks for using invalid numeric notations normally accepted by godot
 `Expressions`. A meaningless string like "5random_letters" no longer resolved to 5
 
+3.0 is still in development but all further changes will be added functionality.
+Currently, only the faith of "s" for sorting is a bit uncertain.
+
 ## Breaking changes 1.1 to 2.0
 
 Some function names are changed and a few moved to non-exposed files to make 
