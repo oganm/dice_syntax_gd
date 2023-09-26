@@ -12,3 +12,4 @@
 /icon.svg           export-ignore
 /tests              export-ignore
 /addons/gut         export-ignore
+/.github            export-ignore
