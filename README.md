@@ -157,7 +157,7 @@ print(dice_syntax.dice_probs("help i'm trapped in a dice factory+1d6"))
 ## Order of operations
 
 There is a set order of operations in the current parser that cannot be altered. Which
-means regardless if one rights "4d6ro1d1" or "4d6d1ro1" You will always roll 4d6s,
+means regardless if one writes "4d6ro1d1" or "4d6d1ro1" You will always roll 4d6s,
 reroll any 1s then drop the lowest result. I am planning to implement a sequential 
 alternative but current order of operations is:
 
