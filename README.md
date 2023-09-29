@@ -139,6 +139,7 @@ alternative but current order of operations is:
 - compound ("!!")
 - drop/keep highest lowest ("d/k(h/l)")
 - drop/keep specific dice ("d/k(</>/=)[number]")
+- Count success/failures if requested ("s/f(</>/=)[number]")
 
 ## Error handling
 
