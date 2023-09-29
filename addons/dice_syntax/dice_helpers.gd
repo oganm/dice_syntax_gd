@@ -107,8 +107,8 @@ static func range_determine(token:String,dice_side:int,regex:RegEx = RegEx.new()
 	var sm = preload('string_manip.gd')
 	var out:PackedInt64Array = []
 	var number = sm.str_extract(token,'[0-9]*$', regex)
-	dice_error(!(sm.str_detect(token,'<',regex) and sm.str_detect(token,">",regex)),'Malformed dice string: A range clause can only have one of "<" or ">"',rolling_rules)
-	dice_error(!(sm.str_detect(token,'<|>|=',regex) and number ==''),'Malformed dice string: Using  "<", ">" or "=" operators requires an integer',rolling_rules)
+	dice_error(!(sm.str_detect(token,'<',regex) and sm.str_detect(token,">",regex)),'Invalid dice: A range clause can only have one of "<" or ">"',rolling_rules)
+	dice_error(!(sm.str_detect(token,'<|>|=',regex) and number ==''),'Invalid dice: Using  "<", ">" or "=" operators requires an integer',rolling_rules)
 	if !sm.str_detect(token,"<|>",regex) and number == '':
 		out.append(default)
 	elif number != '' and !sm.str_detect_rg(token, regex):

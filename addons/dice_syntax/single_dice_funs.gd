@@ -22,14 +22,17 @@ static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dict
 	'drop_specific': true,
 	'dice_side':0,
 	'dice_count':0,
-	'sort':false}
-	var valid_tokens = '[dksr!<=>hl]'
+	'success': [],
+	'fail': [],
+	'sort':false
+	}
+	var valid_tokens = '[dksfr!<=>hl]'
 	dice_string = dice_string.to_lower()
 	var used_tokens:PackedInt64Array
 	
 	# get the dice count or default to 1 if we just start with d.
 	var result = sm.str_extract(dice_string,'^[0-9]*?(?=d)',regex)
-	dh.dice_error(result!=null,'Malformed dice string',rolling_rules)
+	dh.dice_error(result!=null,'Invalid dice: Cannot determine dice count',rolling_rules)
 	if result == '':
 		rolling_rules['dice_count'] = 1
 	elif result == null:
@@ -39,29 +42,60 @@ static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dict
 	
 	# tokenize the rest of the rolling rules. a token character, followed by the
 	# next valid token character or end of string
-	var tokens = sm.str_extract_all(dice_string,
+	var tokens:PackedStringArray = sm.str_extract_all(dice_string,
 		valid_tokens + '.*?((?=' + valid_tokens + ')|$)',regex)
-	# print(tokens)
 	var dice_side = sm.str_extract(tokens[0],'(?<=d)[0-9]+$',regex)
-	dh.dice_error(dice_side != null, "Malformed dice string: Unable to detect dice sides",rolling_rules)
+	dh.dice_error(dice_side != null, "Invalid dice: Unable to detect dice sides",rolling_rules)
 	if dice_side!=null:
 		rolling_rules['dice_side'] = dice_side.to_int()
 	else:
 		return rolling_rules
 	# remove dice side token to make sure it's not confused with the drop rule
 	tokens.remove_at(0)
-	# check for sort rule, if s exists, sort the results
-	# don't think this is useful. consider removing
-	var sort_rule = tokens.find('s')
-	rolling_rules['sort'] = sort_rule != -1
-	if sort_rule != -1:
-		used_tokens.append(sort_rule)
-	# tokens.remove_at(sort_rule)
 	
+	
+	
+
 	# check for drop modifiers
-	var drop_modifiers:Array =  sm.strs_detect(tokens,'^(h|l)[0-9]+$',regex)
+	var drop_modifiers:PackedInt64Array =  sm.strs_detect(tokens,'^(h|l)[0-9]+$',regex)
 	# check for range specifications
-	var ranges =  sm.strs_detect(tokens,"^[<=>][0-9]+$",regex)
+	var ranges:Array =  sm.strs_detect(tokens,"^[<=>][0-9]+$",regex)
+	
+	# s can mean sort or success depending on context
+	var sort_or_success = sm.strs_detect(tokens,'^s[0-9]*$',regex)
+	var success:Array = []
+	for i in sort_or_success:
+		used_tokens.append(i)
+		var token:String = tokens[i]
+		var is_sort:bool = true
+		if i+1 in ranges and !sm.str_detect(token,"[0-9]",regex):
+			used_tokens.append(i+1)
+			token = token + tokens[i+1]
+			is_sort = false
+		elif sm.str_detect(token,"[0-9]",regex):
+			is_sort = false
+		
+		if is_sort:
+			dh.dice_error(!rolling_rules['sort'], "Invalid dice: Can't sort twice",rolling_rules)
+			rolling_rules['sort'] = true
+		else:
+			success.append_array(dh.range_determine(token, rolling_rules['dice_side'],regex,rolling_rules))
+	rolling_rules['success'] = success
+	
+	# fail range
+	var fail_tokens =  sm.strs_detect(tokens,'^f[0-9]*$',regex)
+	var fail:Array = []
+	for i in fail_tokens:
+		used_tokens.append(i)
+		var fail_token = tokens[i]
+		dh.dice_error(i+1 in ranges or sm.str_detect(fail_token,"[0-9]",regex), "Invalid dice: Fails must include a range",rolling_rules)
+		if i+1 in ranges and !sm.str_detect(fail_token,"[0-9]",regex):
+			used_tokens.append(i+1)
+			fail_token = fail_token + tokens[i+1]
+			
+		fail.append_array(dh.range_determine(fail_token, rolling_rules['dice_side'],regex,rolling_rules))
+	rolling_rules['fail'] = fail
+	
 	
 	
 	# drop rules
@@ -74,7 +108,7 @@ static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dict
 		# if drop count isn't found
 		if drop_count == null and i+1 in drop_modifiers:
 			# next token is a drop modifier, it must come with a drop count
-			dh.dice_error(rolling_rules['drop_dice'] == 0, "Malformed dice string: Can't include more than one drop count",rolling_rules)
+			dh.dice_error(rolling_rules['drop_dice'] == 0, "Invalid dice: Can't include more than one drop count",rolling_rules)
 			drop_count = sm.str_extract_rg(tokens[i+1],regex)
 			drop_rule = tokens[i] + tokens[i+1]
 			used_tokens.append(i+1)
@@ -83,18 +117,18 @@ static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dict
 			var drop_range = dh.range_determine(tokens[i+1],rolling_rules['dice_side'],regex,rolling_rules)
 			match drop_rule.substr(0,1):
 				"d": 
-					dh.dice_error(rolling_rules['drop_specific'],"Malformed dice string: Can't specify both dropping and keeping specific dice",rolling_rules)
+					dh.dice_error(rolling_rules['drop_specific'],"Invalid dice: Can't specify both dropping and keeping specific dice",rolling_rules)
 					rolling_rules['drop_specific'] = true
 					pass
 				'k':
-					dh.dice_error(!rolling_rules['drop_specific'] or rolling_rules['drop_keep_specific'].size()==0,"Malformed dice string: Can't specify both dropping and keeping specific dice",rolling_rules)
+					dh.dice_error(!rolling_rules['drop_specific'] or rolling_rules['drop_keep_specific'].size()==0,"Invalid dice: Can't specify both dropping and keeping specific dice",rolling_rules)
 					rolling_rules['drop_specific'] = false
 					pass
 			rolling_rules['drop_keep_specific'].append_array(drop_range)
 			used_tokens.append(i+1)
 			drop_count = ""
 
-		dh.dice_error(drop_count!= null, 'Malformed dice string: No drop count provided',rolling_rules)
+		dh.dice_error(drop_count!= null, 'Invalid: No drop count provided',rolling_rules)
 		# dropping specific results will set drop count to "", if not, we still
 		# need to process the drop count
 		if drop_count!="" and drop_count != null:
@@ -117,7 +151,7 @@ static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dict
 		used_tokens.append(i)
 		var reroll_token = tokens[i]
 		if i+1 in ranges and !sm.str_detect(reroll_token,"[0-9]",regex):
-			used_tokens.append(i)
+			used_tokens.append(i+1)
 			reroll_token = reroll_token+tokens[i+1]
 		reroll.append_array(dh.range_determine(reroll_token, rolling_rules['dice_side'],regex,rolling_rules))
 		
@@ -140,7 +174,7 @@ static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dict
 		reroll_once.append_array(dh.range_determine(reroll_token, rolling_rules['dice_side'],regex,rolling_rules))
 	
 	dh.dice_error(al.table(reroll_once).values().filter(func(x):return x>1).size()==0,
-		"Malformed dice string: can't reroll the same number once more than once.",
+		"Invalid dice: can't reroll the same number once more than once.",
 		rolling_rules)
 	rolling_rules['reroll_once'] = reroll_once
 	
@@ -183,18 +217,19 @@ static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dict
 	rolling_rules['explode'] = explode
 	rolling_rules['compound'] = compound
 	
-	used_tokens.sort()
-	used_tokens.reverse()
-	#print(used_tokens)
-	for i in used_tokens:
-		if i>= tokens.size():
-			dh.dice_error(tokens.size()==0, 'Malformed dice string: Ambigious tokens',rolling_rules)
-		else:
-			tokens.remove_at(i)
-	dh.dice_error(tokens.size()==0, 'Malformed dice string: Unprocessed tokens',rolling_rules)
+	# all tokens are processed
+	dh.dice_error(range(tokens.size()).all(func(x):return x in used_tokens), 
+		'Invalid dice: Unprocessed tokens',rolling_rules)
+	
+	# every token is processed only once
+	dh.dice_error(al.table(used_tokens).values().all(func(x):return x == 1),
+		'Invalid dice: Ambigious tokens', rolling_rules)
+	
+
 	var possible_dice = range(1,rolling_rules.dice_side+1)
 	possible_dice = al.array_subset(possible_dice,al.which(al.array_not(al.array_in_array(possible_dice, rolling_rules.reroll))))
 	dh.dice_error(possible_dice.size()>0,"Invalid dice: No possible results",rolling_rules)
+	dh.dice_error(!rolling_rules.success.any(func(x):return x in rolling_rules.fail), "Invalid dice: Cannot count same result as both success and failure",rolling_rules)
 	
 	dh.dice_error(possible_dice.size()==0 or not possible_dice.all(func(x):return x in rolling_rules.explode),"Invalid dice: can't explode every result",rolling_rules)
 	dh.dice_error(possible_dice.size()==0 or not possible_dice.all(func(x):return x in rolling_rules.compound),"Invalid dice: can't compound every result",rolling_rules)
@@ -289,7 +324,15 @@ static func base_rule_roller(rolling_rules:Dictionary,rng:RandomNumberGenerator 
 		dice = dice.filter(func(x):return x in rolling_rules.drop_keep_specific)
 	
 	out['dice'] = dice
-	out['result'] = al.sum(dice)
+	
+	if rolling_rules.success.size()>0 or rolling_rules.fail.size()>0:
+		var success = dice.filter(func(x):return x in rolling_rules.success)
+		var fail = dice.filter(func(x):return x in rolling_rules.fail)
+		out['result'] = success.size() - fail.size()
+	else:
+		out['result'] = al.sum(dice)
+	
+	
 	
 	
 	return out
@@ -371,7 +414,18 @@ static func base_calc_rule_probs(rules:Dictionary,explode_depth:int = 3)->Dictio
 			var new_key = k.filter(func(x):return x in rules.drop_keep_specific)
 			dh.add_to_dict(post_drop_specific,new_key,probs[k])
 		probs = post_drop_specific
-		
+	
+	if rules.success.size()>0 or rules.fail.size()>0:
+		var post_success:Dictionary
+		for k in probs.keys():
+			var success = k.filter(func(x):return x in rules.success)
+			var fail = k.filter(func(x):return x in rules.fail)
+			var new_key:Array
+			new_key.append(success.size() - fail.size())
+			dh.add_to_dict(post_success,new_key,probs[k])
+		probs = post_success
+	
+	
 	# collapse results into single sums
 	probs = dh.collapse_probs(probs, false)
 	

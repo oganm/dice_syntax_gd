@@ -25,7 +25,11 @@ func test_parsing():
 	assert_true(parsed.msg[0] == "Invalid dice: can't explode every result")
 	
 	parsed = dice_syntax.dice_parser('1d4d=1k=1')
-	assert_true(parsed.msg[0] == "Malformed dice string: Can't specify both dropping and keeping specific dice")
+	assert_true(parsed.msg[0] == "Invalid dice: Can't specify both dropping and keeping specific dice")
+	
+	
+	parsed = dice_syntax.dice_parser('1d2s2f2')
+	assert_true(parsed.msg[0] == "Invalid dice: Cannot count same result as both success and failure")
 	
 
 func test_dice_mean():
@@ -63,7 +67,10 @@ func test_dice_mean():
 	assert_between(m_roll,1.4,1.6,'regular')
 	
 	m_roll = mean_tester("1d2k=1")
-	assert_between(m_roll,0.4,0.6,'keep_specific')
+	assert_between(m_roll,0.4,0.6,'keep specific')
+	
+	m_roll = mean_tester("1d2s2f1")
+	assert_between(m_roll,-0.1,.1,'success fail')
 
 
 func test_probs():
@@ -80,3 +87,6 @@ func test_probs():
 	
 	probs = dice_syntax.dice_probs('1d2k=1')
 	assert_true(dice_syntax.expected_value(probs) == 0.5)
+	
+	probs = dice_syntax.dice_probs('1d2s2f1')
+	assert_true(dice_syntax.expected_value(probs) == 0)

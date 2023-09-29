@@ -11,7 +11,7 @@ static func dice_parser(dice:String,regex:RegEx = RegEx.new())->Dictionary:
 	var dh = preload('dice_helpers.gd')
 	var error = false
 	var msg = []
-	var dice_regex = '[0-9]*d[0-9]+[dksro!<=>0-9lh]*'
+	var dice_regex = '[0-9]*d[0-9]+[dksfro!<=>0-9lh]*'
 	
 	
 	regex.compile(dice_regex)

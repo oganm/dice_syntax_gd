@@ -6,9 +6,10 @@ Table of Contents
    * [Basic Usage](#basic-usage)
    * [Probability Calculations](#probability-calculations)
    * [Rolling from probabilities](#rolling-from-probabilities)
-   * [Error handling](#error-handling)
    * [Supported Syntax](#supported-syntax)
-   * [Breaking changes 1.1 to 2.0](#breaking-changes-11-to-20)
+   * [Order of operations](#order-of-operations)
+   * [Error handling](#error-handling)
+   * [Breaking changes](#breaking-changes)
    * [License](#license)
 
 
@@ -103,7 +104,41 @@ print(dice_syntax.roll_from_probs(probs,rng,10))
 [2, 1, 1, 2, 1, 1, 1, 1, 1, 2]
 ```
 
+## Supported Syntax
 
+- `4d6`: roll 4 six sided dice
+- `4d6s`: roll 4d6 sort the results
+- `4d6s>5`: roll 4d6s return the number of 5s and 6s ("s" means success in this context)
+- `4d6s>5f1`: roll 4d6s count all 5s and 6s, substract the number of 1s
+- `4d6+2d5/2`: perform arbitrary mathematical operations. The statements are turned into [Expressions](https://docs.godotengine.org/en/stable/classes/class_expression.html) so everything supported by them will work fine. Note that the result will be the data type returned by execution of the expression. Often a float. 
+- `4d6d1`: roll 4d6, drop the lowest one
+- `4d6dh1`: roll 4d6, drop the highest one
+- `4d6k1`: roll 4d6, keep the highest one
+- `4d6kl1:` roll 4d6, keep the lowest one
+- `4d6d=1:` roll 4d6s drop all 1s
+- `4d6k>5:` roll 4d6s keep only 5s and 6s
+- `4d6d<2:` roll 4d6s drop all 1s and 2s
+- `4d6r1`: roll 4d6 reroll all 1s (1 is not a possible result)
+- `4d6ro1`: roll 4d6 reroll 1s once
+- `4d6r<2`: roll 4d6 reroll all 1s and 2s (not possible results)
+- `4d6ro<2`: roll 4d6 reroll1s and 2s once
+- `4d6!`: roll 4d6 explode 6s (for every six, roll again until a non six is rolled, add them to the rolls. The output will have variable number of dice)
+- `4d6!!`: roll 4d6 compound 6s (for every six, roll again until a non six is rolled, combined them into a single roll in the output. The output will have 4 dice)
+- `4d6!>5`: roll 4d6 explode 5s and 6s
+
+## Order of operations
+
+There is a set order of operations in the current parser that cannot be altered. Which
+means regardless if one writes "4d6ro1d1" or "4d6d1ro1" You will always roll 4d6s,
+reroll any 1s then drop the lowest result. I am planning to implement a sequential 
+alternative but current order of operations is:
+
+- reroll ("r")
+- reroll once ("ro")
+- explode ("!")
+- compound ("!!")
+- drop/keep highest lowest ("d/k(h/l)")
+- drop/keep specific dice ("d/k(</>/=)[number]")
 
 ## Error handling
 
@@ -134,53 +169,24 @@ print(dice_syntax.dice_probs("help i'm trapped in a dice factory+1d6"))
 {0:1}
 ```
 
-## Supported Syntax
 
-- `4d6`: roll 4 six sided dice
-- `4d6s`: roll 4d6 sort the results
-- `4d6+2d5/2`: perform arbitrary mathematical operations. The statements are turned into [Expressions](https://docs.godotengine.org/en/stable/classes/class_expression.html) so everything supported by them will work fine. Note that outputs of dice will always be `float`s.
-- `4d6d1`: roll 4d6, drop the lowest one
-- `4d6dh1`: roll 4d6, drop the highest one
-- `4d6k1`: roll 4d6, keep the highest one
-- `4d6kl1:` roll 4d6, keep the lowest one
-- `4d6d=1:` roll 4d6s drop all 1s
-- `4d6k>5:` roll 4d6s keep only 5s and 6s
-- `4d6d<2:` roll 4d6s drop all 1s and 2s
-- `4d6r1`: roll 4d6 reroll all 1s (1 is not a possible result)
-- `4d6ro1`: roll 4d6 reroll 1s once
-- `4d6r<2`: roll 4d6 reroll all 1s and 2s (not possible results)
-- `4d6ro<2`: roll 4d6 reroll1s and 2s once
-- `4d6!`: roll 4d6 explode 6s (for every six, roll again until a non six is rolled, add them to the rolls. The output will have variable number of dice)
-- `4d6!!`: roll 4d6 compound 6s (for every six, roll again until a non six is rolled, combined them into a single roll in the output. The output will have 4 dice)
-- `4d6!>5`: roll 4d6 explode 5s and 6s
 
-## Order of operations
+## Breaking changes
 
-There is a set order of operations in the current parser that cannot be altered. Which
-means regardless if one writes "4d6ro1d1" or "4d6d1ro1" You will always roll 4d6s,
-reroll any 1s then drop the lowest result. I am planning to implement a sequential 
-alternative but current order of operations is:
-
-- reroll ("r")
-- reroll once ("ro")
-- explode ("!")
-- compound ("!!")
-- drop/keep highest lowest ("d/k(h/l)")
-- drop/keep specific dice ("d/k(</>/=)[number]")
-
-## Breaking changes 2.2.2 to 3.0
+### Breaking changes 2.2.2 to 3.0
 
 - The syntax is checked more rigidly in this version, preventing inclusion of meaningless
 symbols within dice strings. Nothing should break if inteded functionality was being
 used.
 - The parser checks for using invalid numeric notations normally accepted by godot
-`Expressions`. A meaningless string like "5random_letters" no longer resolved to 5
+`Expressions`. A meaningless string like "5random_letters" no longer resolved to 5.
+(Related to [this Godot issue](https://github.com/godotengine/godot/issues/81895))
+- "s" followed by a range indicator is now used to count successes. s that is not followed
+by a range indicator still sorts the dice. This should not effect any previously valid
+dice notation.
+- Minor changes to error messages
 
-3.0 is still in development but all further changes will be added functionality.
-Currently, only the faith of "s" for sorting is a bit uncertain.
-
-
-## Breaking changes 1.1 to 2.0
+### Breaking changes 1.1 to 2.0
 
 Some function names are changed and a few moved to non-exposed files to make 
 things clearer for the end user. The new format can be considered stable
