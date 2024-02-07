@@ -81,9 +81,9 @@ static func roll_parsed(rules:Dictionary, rng:RandomNumberGenerator = RandomNumb
 	
 	return {'result':sum, 'rolls':results,'error': error, 'msg': msg}
 
-static func roll(dice:String, rng:RandomNumberGenerator = RandomNumberGenerator.new())->Dictionary:
-	var rules = dice_parser(dice)
-	return roll_parsed(rules,rng)
+static func roll(dice:String, rng:RandomNumberGenerator = RandomNumberGenerator.new(),regex = RegEx.new() ,base_instance = null)->Dictionary:
+	var rules = dice_parser(dice,regex,base_instance)
+	return roll_parsed(rules,rng,base_instance)
 
 static func parsed_dice_probs(rules, explode_depth:int=1, base_instance = null)->Dictionary:
 	var dh = preload('dice_helpers.gd')
@@ -112,9 +112,9 @@ static func parsed_dice_probs(rules, explode_depth:int=1, base_instance = null)-
 	
 	return processed_results
 
-static func dice_probs(dice:String,explode_depth:int=1,regex = RegEx.new())->Dictionary:
+static func dice_probs(dice:String,explode_depth:int=1,regex = RegEx.new(),base_instance = null)->Dictionary:
 	var rules = dice_parser(dice,regex)
-	return parsed_dice_probs(rules,explode_depth)
+	return parsed_dice_probs(rules,explode_depth,base_instance)
 
 
 static func expected_value(probs:Dictionary)->float:
