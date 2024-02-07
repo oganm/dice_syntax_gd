@@ -113,7 +113,7 @@ static func parsed_dice_probs(rules, explode_depth:int=1, base_instance = null)-
 	return processed_results
 
 static func dice_probs(dice:String,explode_depth:int=1,regex = RegEx.new(),base_instance = null)->Dictionary:
-	var rules = dice_parser(dice,regex)
+	var rules = dice_parser(dice,regex,base_instance)
 	return parsed_dice_probs(rules,explode_depth,base_instance)
 
 
