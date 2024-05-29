@@ -104,7 +104,32 @@ print(dice_syntax.roll_from_probs(probs,rng,10))
 [2, 1, 1, 2, 1, 1, 1, 1, 1, 2]
 ```
 
-## Supported Syntax
+## Dice Reference
+
+### Dice count and sides
+
+"[dice count]d[dice sides]" (e.g. "4d6"), dice count is optional and defaults to 1
+
+### Sorting dice
+
+"s" (e.g. "4d6s") will sort the returned results. Frankly, not very useful but it was in roll20...
+
+### Range specification
+
+[=,>,<][integer] (e.g. 4d6r<2) defines the range of numbers that another rule applies to. < and > are inclusive, thus <[integer] means any 
+
+### Expressions
+
+eg. "(4d6 + 5)/2"
+
+Inputs are evaluated as [Expressions](https://docs.godotengine.org/en/stable/classes/class_expression.html). 
+Any component of the inputs that looks like a dice are turned to inputs for the expression (regex "[0-9]*d[0-9]+[dksfro!<=>0-9lh]*") and will be sent to the dice parser, as such it may be prudent to leave a space between the description of a dice to avoid sending non dice parts of the expression to the parser (e.g for a simple comparison, "1d2==2" will fail, "1d2 == 2" will not).
+
+
+
+
+
+### Examples
 
 - `4d6`: roll 4 six sided dice
 - `4d6s`: roll 4d6 sort the results
@@ -133,10 +158,9 @@ means regardless if one writes "4d6ro1d1" or "4d6d1ro1" You will always roll 4d6
 reroll any 1s then drop the lowest result. I am planning to implement a sequential 
 alternative but current order of operations is:
 
-- reroll ("r")
-- reroll once ("ro")
-- explode ("!")
-- compound ("!!")
+- rerolling and rerolling once ("r", "ro") These parameters will be applied to every
+dice that is rolled including ones added by explosions and compounding.
+- explode ("!") and compound ("!!") currently these cannot be used together
 - drop/keep highest lowest ("d/k(h/l)")
 - drop/keep specific dice ("d/k(</>/=)[number]")
 - Count success/failures if requested ("s/f(</>/=)[number]")
