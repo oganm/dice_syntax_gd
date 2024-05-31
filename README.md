@@ -30,7 +30,7 @@ The output is a `Dictionary` where `result` is the sum of all the dice rolled wh
 includes additional details about the roll.
 
 Alternatively dice parsing and rolling can be separated from each other. You can use
-this if you run into bottlenecks since parsing is more expensive than rolling.
+this if you run into bottlenecks since parsing is usually more expensive than rolling.
 
 ```
 var rng = RandomNumberGenerator.new()
@@ -108,23 +108,97 @@ print(dice_syntax.roll_from_probs(probs,rng,10))
 
 ### Dice count and sides
 
-"[dice count]d[dice sides]" (e.g. "4d6"), dice count is optional and defaults to 1
+- `[integer]d[integer]` (e.g. `4d6`)
+
+The first integer denotes how many dice are to be rolled. It is optional and defaults to 1. The second
+integer is the size of the dice.
 
 ### Sorting dice
 
-"s" (e.g. "4d6s") will sort the returned results. Frankly, not very useful but it was in roll20...
+- `s` (e.g. `4d6s`) 
+
+Sorts the returned results. Frankly, not very useful but it was in roll20...
 
 ### Range specification
 
-[=,>,<][integer] (e.g. 4d6r<2) defines the range of numbers that another rule applies to. < and > are inclusive, thus <[integer] means any 
+- `[=,>,<][integer]` (e.g. `4d6r<2`) 
+
+Defines the range of numbers that certain rules apply to. `<` and `>` are inclusive (blame roll20). Thus 
+`>[integer]` defines a range from the given integer to the dice size while `<[integer]` defines
+a range from 1 to the integer. `=[integer]` defines exact matches. 
+Typically rules that accept range specifications allow
+inclusion of multiple ranges by repeating the rule multiple times with different specifications
+(e.g. `4d6r<3r>5` rerolls anything 3 or lower, and 5 or higher, always returning 4)
+
+### Rerolls
+
+- `r[range specification]` (e.g `4d6r<2`) Reroll within the given range
+- `r[integer]` (e.g. `4d6r2`) Reroll a specific result (equivalent to `4d6r=2`)
+- `r` (e.g. `4d6r`) Reroll all 1s (equivalent to `4d6r1`, `4d6r=1`)
+
+These ranges apply to every rolled dice in the group, including the ones added
+by explosions and compounding. Results are rerolled all the time so anything
+within the range is no longer a possible result. Under the hood these results
+are omitted from the possible results so the result object does not include any
+information about how many times rerolls actually happened (answer is none).
+
+### Rerolling once
+
+- `ro[range specification]` (e.g `4d6ro<2`) Reroll within the given range once
+- `ro[integer]` (e.g. `4d6ro2`) Reroll a specific result once (equivalent to `4d6ro=2`)
+- `ro` (e.g. `4d6ro`) Reroll all 1s once (equivalent to `4d6ro1`, `4d6ro=1`)
+
+Same as re rolling except dice are only rerolled once. Any dice added by explosion
+or compounding will also have their chance to be rerolled. Under the hood this alters
+the probability of the rerolled, so again, no rerolls actually happen.
+
+### Explosions
+
+- `![range specification]` (e.g. `4d6!>5`) Explode within the given range
+- `![integer]` (e.g. `4d6!5`) Explode for the specific result (equivalent to `4d6!=5`)
+- `!` (e.g `4d6!`) Explode for the highest dice face (equivalent to `4d6!6`, `4d6!=6`)
+
+Explosion adds additional dice to the dice group if the number rolled for the dice
+lies within the specified range. Probability calculation functions `dice_probs` and
+`parsed_dice_probs` accepts an `explode_depth` parameter which controls how many
+times a given dice will be rolled as a result of explosions. The default value
+1 calculates probabilities without considering any explosions. Explosions with high
+probability on larger dice can be detrimental to performance.
+
+### Compounding
+
+- `!![range specification]` (e.g. `4d6!!>5`) Explode within the given range
+- `!![integer]` (e.g. `4d6!!5`) Explode for the specific result (equivalent to `4d6!!=5`)
+- `!!` (e.g `4d6!!`) Explode for the highest dice face (equivalent to `4d6!!6`, `4d6!!=6`)
+
+Same as explosion except any newly rolled dice will be considered a single roll, both
+in the output and for the purposes of dropping/keeping dice and counting successes (bugged!).
+
+### Dropping/keeping dice
+
+- `d[integer]` (e.g `4d6d1`) Drop a number of dice. Lowest rolls are dropped
+- `k[integer]` (e.g `4d6k3`) Keep a number of dice. Highest rolls are kept
+- `dh[integer]` (e.g `4d6dh1`) Drop a number of dice. Highest rolls are dropped
+- `kl[integer]` (e.g `4d6kl1`) Keep a number of dice. Lowest rolls are kept
+- `d[range specification]` (e.g `4d6d<2`) Drop dice within the given range 
+- `k[range specification]` (e.g `4d6k>3`) Keep dice within the given range
+
+Dice that are dropped are included in the output (append_array bug with dropping specific dice). Dropping dice happens after
+rerolls, compounding and explosions.
+
+
+### Counting success/failures
+
+- `s[range specification]`
+
 
 ### Expressions
 
 eg. "(4d6 + 5)/2"
 
 Inputs are evaluated as [Expressions](https://docs.godotengine.org/en/stable/classes/class_expression.html). 
-Any component of the inputs that looks like a dice are turned to inputs for the expression (regex "[0-9]*d[0-9]+[dksfro!<=>0-9lh]*") and will be sent to the dice parser, as such it may be prudent to leave a space between the description of a dice to avoid sending non dice parts of the expression to the parser (e.g for a simple comparison, "1d2==2" will fail, "1d2 == 2" will not).
-
+Any component of the inputs that looks like a dice are turned to inputs for the expression (regex "[0-9]*d[0-9]+[dksfro!<=>0-9lh]*") and will be sent to the dice parser, as such it may be prudent to leave a space between the description of a dice to avoid sending non dice parts of the expression to the parser (e.g "1d2==2" will fail trying to parse the whole phrase as a roll, "1d2 == 2" will roll 1d2 then compare it to 2). Note that dice results will be passed as floats not integers (bugged for successes).
+ 
 
 
 
