@@ -1,13 +1,19 @@
 extends Resource
 
 ## Stores integer ranges
-var ranges:Array[Vector2i]
-	
-	## iter vars
+var ranges:Array[Vector2i]:
+	set(new_val):
+		ranges = normalize_ranges(new_val)
+
+const POS_INF:int = 2147483647 # Vector2i supports 32 bit integers
+const NEG_INF:int = -2147483648 
+
+## iter vars
 var _i:int = 0
 var _j:int = 0
 var _iter_range:Array[int]
 var _iter_current:int
+var iter_limit = 10_000_000 # if 0 no limit
 
 func _init(ranges:Array[Vector2i]):
 	self.ranges = normalize_ranges(ranges)
@@ -15,8 +21,8 @@ func _init(ranges:Array[Vector2i]):
 func _iter_init(arg):
 	_i=0
 	_j=0
-	if ranges.size()>0:
-		_iter_range = Array(range(ranges[_i][0],ranges[_i][1]+1),TYPE_INT, &"", null)
+	if self.ranges.size()>0:
+		_iter_range = Array(range(self.ranges[_i][0],self.ranges[_i][1]+1),TYPE_INT, &"", null)
 		_iter_current = _iter_range[_j]
 		return true
 	else:
@@ -27,11 +33,15 @@ func _iter_next(arg):
 	if(_iter_range.size()<=_j):
 		_j = 0
 		_i = _i+1
-		if(ranges.size()<=_i):
+		if(self.ranges.size()<=_i):
 			return false
 		else:
-			_iter_range =  Array(range(ranges[_i][0],ranges[_i][1]+1),TYPE_INT, &"", null)
+			_iter_range =  Array(range(self.ranges[_i][0],self.ranges[_i][1]+1),TYPE_INT, &"", null)
 	_iter_current = _iter_range[_j]
+	
+	if iter_limit - ( _i + _j ) == 0:
+		return false
+	
 	return true
 
 func _iter_get(arg):
@@ -40,13 +50,26 @@ func _iter_get(arg):
 	
 func get_values():
 	var out:Array
-	for x in ranges:
+	var lim_count:int = iter_limit
+	
+	
+	for x in self.ranges:
+		var range_length = x[1] - x[0] + 1
+		if iter_limit != 0:
+			lim_count = lim_count - range_length
+			if lim_count <= 0:
+				x[1] = x[1] + lim_count
 		out.append_array(range(x[0],x[1]+1))
+		
+		if lim_count<=0:
+			break
+		
+		
 	return out
 		
 	
 func add_range(r:Vector2i):
-	r = check_range(r)
+	r = _check_range(r)
 	
 	# this bit is a bit inefficient but should be good enough for dice.
 	# ideally we would identify where a merge could happen then check against
@@ -56,8 +79,7 @@ func add_range(r:Vector2i):
 		
 	
 func remove_range(r:Vector2i):
-	pass
-	r = check_range(r)
+	r = _check_range(r)
 	
 	var remove_list:Array[int]
 	var add_ranges:Array[Vector2i]
@@ -65,17 +87,28 @@ func remove_range(r:Vector2i):
 	for i:int in range(self.ranges.size()):
 		var x:Vector2i = self.ranges[i]
 		if r[0]>x[1]:
-			continue
-		elif r[0]>x[0]:
+			# x: ----
+			# r:         ----
+			continue 
+		elif r[0]<=x[1] and r[0]>x[0]:
+			# x: -----
+			# r:   ------
 			self.ranges[i] = Vector2i(x[0],r[0]-1)
 			if r[1]<x[1]:
+				# x: -------
+				# r:   ---
 				add_ranges.append(Vector2i(r[1]+1,x[1]))
-		elif x[0]>r[0] and r[1]>x[1]:
-			remove_list.append(i)
-		elif x[0]>r[0] and r[1]<x[1]:
+		elif r[0]<=x[0] and r[1]>=x[0] and r[1]< x[1]:
+			# x:   -----
+			# r: -----
 			self.ranges[i] = Vector2i(r[1]+1,x[1])
+		elif r[0] <= x[0] and r[1] >= x[1]:
+			# x:   ----
+			# r: ---------
+			remove_list.append(i)
 		else:
 			print('you fucked up')
+
 	remove_list.reverse()
 	
 	for i:int in remove_list:
@@ -87,12 +120,14 @@ func remove_range(r:Vector2i):
 
 static func normalize_ranges(ranges:Array[Vector2i])->Array[Vector2i]:
 	var out:Array[Vector2i]
+	if ranges.size()==0:
+		return out
 	
 	ranges.sort()
-	out.append(check_range(ranges[0]))
+	out.append(_check_range(ranges[0]))
 	
 	for current_range in ranges.slice(1):
-		var last_elem:Vector2i = check_range(out[out.size()-1])
+		var last_elem:Vector2i = _check_range(out[out.size()-1])
 		if current_range[0]<=last_elem[1]+1:
 			var new_elem:Vector2i = Vector2i(last_elem[0],max(last_elem[1],current_range[1]))
 			out[out.size()-1] = new_elem
@@ -101,7 +136,9 @@ static func normalize_ranges(ranges:Array[Vector2i])->Array[Vector2i]:
 	
 	return out
 	
-static func check_range(r:Vector2i)->Vector2i:
+static func _check_range(r:Vector2i)->Vector2i:
 	if r[0]>r[1]:
 		r = Vector2i(r[1],r[0])
 	return r
+	
+

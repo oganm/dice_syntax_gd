@@ -30,3 +30,15 @@ func test_multirange():
 	r.remove_range(Vector2i(3,9))
 	assert_true(r.ranges.size()== 2)
 	assert_true(r.get_values() == [1,2,10,11,12])
+
+func test_infinite():
+	var input:Array[Vector2i] = [Vector2i(ranges.NEG_INF,ranges.POS_INF)]
+	var r = ranges.new(input)
+	
+	assert_true(r.get_values().size() == r.iter_limit)
+	
+	r.remove_range(Vector2i(ranges.NEG_INF, 0))
+	
+	assert_true(r.get_values()[0]==1)
+	
+	
