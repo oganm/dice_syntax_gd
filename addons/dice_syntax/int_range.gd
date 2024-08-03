@@ -106,6 +106,11 @@ func remove_range(r:Vector2i):
 			# x:   ----
 			# r: ---------
 			remove_list.append(i)
+		elif r[1]<x[0]:
+			# x:      -----
+			# r: ---
+			# ranges are ordered. by x[0]
+			break
 		else:
 			print('you fucked up')
 
