@@ -1,13 +1,14 @@
 extends GDScript
 # internal functions that parse single dice rolls
 
+const ir = preload('int_range.gd')
+const sm = preload('string_manip.gd')
+const al = preload('array_logic.gd')
+const dh = preload('dice_helpers.gd')
 
 # basic dice parser for single rolls
 
 static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dictionary:
-	var sm = preload('string_manip.gd')
-	var al = preload('array_logic.gd')
-	var dh = preload('dice_helpers.gd')
 	var rolling_rules: Dictionary = {
 	'error': false, 
 	'msg': [],
@@ -270,7 +271,6 @@ static func base_dice_parser(dice_string:String,regex:RegEx = RegEx.new())->Dict
 
 # rolling a single roll from a parsed rules
 static func base_rule_roller(rolling_rules:Dictionary,rng:RandomNumberGenerator = RandomNumberGenerator.new())->Dictionary:
-	var al = preload('array_logic.gd')
 	var out:Dictionary = {'error': false,
 	'msg': [],
 	'dice': [],
@@ -374,8 +374,6 @@ static func base_rule_roller(rolling_rules:Dictionary,rng:RandomNumberGenerator 
 
 # calucate probabilities of a single roll
 static func base_calc_rule_probs(rules:Dictionary,explode_depth:int = 3)->Dictionary:
-	var al = preload('array_logic.gd')
-	var dh = preload('dice_helpers.gd')
 	
 	if rules.error:
 		var probs = {0.0:1.0}

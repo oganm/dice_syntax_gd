@@ -1,5 +1,6 @@
 extends Resource
 
+
 ## Stores integer ranges
 var ranges:Array[Vector2i]:
 	set(new_val):
@@ -122,6 +123,10 @@ func remove_range(r:Vector2i):
 	if add_ranges.size()>0:
 		self.ranges.append_array(add_ranges)
 		self.ranges = normalize_ranges(self.ranges)
+
+func add_int_range(r:Node):
+	for rng in r.ranges:
+		self.add_range(rng)
 
 static func normalize_ranges(ranges:Array[Vector2i])->Array[Vector2i]:
 	var out:Array[Vector2i]

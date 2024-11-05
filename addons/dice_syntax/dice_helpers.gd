@@ -1,5 +1,8 @@
 extends GDScript
 
+const sm = preload('string_manip.gd')
+const al = preload('array_logic.gd')
+const ir = preload('int_range.gd') 
 # convert integer to a different base, return the result as an array of digits
 static func base_convert(number:int,base:int)->Array:
 	var current_num = number
@@ -78,7 +81,6 @@ static func blow_up(probs:Dictionary,blow_dice:Array, depth = 3)-> Dictionary:
 	return probs
 
 static func collapse_probs(probs:Dictionary, array_keys:bool = true)-> Dictionary:
-	var al = preload('array_logic.gd')
 	var out: Dictionary
 	var temp: Dictionary
 	for k in probs.keys():
@@ -104,7 +106,6 @@ static func dice_error(condition:bool,message:String,rolling_rules:Dictionary)->
 
 
 static func range_determine(token:String,dice_side:int,regex:RegEx = RegEx.new(),rolling_rules:Dictionary={} ,default:int = 1)-> PackedInt64Array:
-	var sm = preload('string_manip.gd')
 	var out:PackedInt64Array = []
 	var number = sm.str_extract(token,'[0-9]*$', regex)
 	dice_error(!(sm.str_detect(token,'<',regex) and sm.str_detect(token,">",regex)),'Invalid dice: A range clause can only have one of "<" or ">"',rolling_rules)
@@ -117,5 +118,22 @@ static func range_determine(token:String,dice_side:int,regex:RegEx = RegEx.new()
 		out.append_array(range(1,number.to_int()+1))
 	elif sm.str_detect(token,">", regex) and number != '':
 		out.append_array(range(number.to_int(),dice_side+1))
+	
+	return out
+
+
+static func range_determine2(token:String,range_min:int = ir.NEG_INF, range_max = ir.POS_INF,regex:RegEx = RegEx.new(),rolling_rules:Dictionary={} ,default:int = 1)-> Vector2i:
+	var out:Vector2i
+	var number = sm.str_extract(token,'[0-9]*$', regex)
+	dice_error(!(sm.str_detect(token,'<',regex) and sm.str_detect(token,">",regex)),'Invalid dice: A range clause can only have one of "<" or ">"',rolling_rules)
+	dice_error(!(sm.str_detect(token,'<|>|=',regex) and number ==''),'Invalid dice: Using  "<", ">" or "=" operators requires an integer',rolling_rules)
+	if !sm.str_detect(token,"<|>",regex) and number == '':
+		out = Vector2i(default,default)
+	elif number != '' and !sm.str_detect_rg(token, regex):
+		out = Vector2i(number.to_int(),number.to_int())
+	elif sm.str_detect(token,"<" ,regex) and number != '':
+		out = Vector2i(range_min, number.to_int()+1)
+	elif sm.str_detect(token,">", regex) and number != '':
+		out = Vector2i(number.to_int(),range_max)
 	
 	return out
